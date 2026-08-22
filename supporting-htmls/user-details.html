@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Calorie Tracker Coding Assignment - User Data Details</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="assets/css/global.css" rel="stylesheet">
+</head>
+
+<body>
+    <div>
+        <header class="header">
+            <div class="container">
+                <div class="logo">
+                    <a href="#">
+                        <img src="assets/img/logo.png">
+                    </a>
+                </div>
+            </div>
+        </header>
+        <div class="mid-container">
+            <div class="container">
+                <div class="title-row">
+                    <h1 class="title">James</h1>
+                    <div class="title-row-right">
+                        <button class="btn-primary" data-toggle="modal" data-target="#addDataModal">Add Data</button>
+                    </div>
+                </div>
+                <div class="view-calorie-data">
+                    <div class="view-calorie-data-date-input">
+                        <div class="date-input">
+                            <input type="date" placeholder="Age">
+                        </div>
+                        <div class="show-selected-date">
+                            Date : - 6/27/2022
+                        </div>
+                    </div>
+                    <div class="view-calorie-data-chart">
+                        <div class="food-data white-card">
+                            <h2>Food Data</h2>
+                            <div class="food-data-table">
+                                <table
+                                    class="dcf-table dcf-table-responsive dcf-table-bordered dcf-table-striped dcf-w-100%">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Date</th>
+                                            <th scope="col">Meal Type</th>
+                                            <th scope="col">Food Group</th>
+                                            <th scope="col">Serving</th>
+                                            <th scope="col">Calorie In</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row">6/25/2022</th>
+                                            <td data-label="Meal Type">Fast Food</td>
+                                            <td data-label="Food Group">Lunch</td>
+                                            <td data-label="Serving">10</td>
+                                            <td data-label="Calorie In">5878</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">6/26/2022</th>
+                                            <td data-label="Meal Type">Fast Food</td>
+                                            <td data-label="Food Group">Lunch</td>
+                                            <td data-label="Serving">10</td>
+                                            <td data-label="Calorie In">5878</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="activity-data white-card">
+                            <h2>Activity Data</h2>
+                            <div class="activity-data-table">
+                                <table
+                                    class="dcf-table dcf-table-responsive dcf-table-bordered dcf-table-striped dcf-w-100%">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Date</th>
+                                            <th scope="col">Name</th>
+                                            <th scope="col">Description</th>
+                                            <th scope="col">MET Value</th>
+                                            <th scope="col">Duration</th>
+                                            <th scope="col">Calorie Out</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row">6/26/2022</th>
+                                            <td data-label="Name">Bicycling</td>
+                                            <td data-label="Description">Here Activity Description</td>
+                                            <td data-label="MET Value">14.0</td>
+                                            <td data-label="Duration">30 min.</td>
+                                            <td data-label="Calorie Out">10.2</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">6/27/2022</th>
+                                            <td data-label="Name">Running</td>
+                                            <td data-label="Description">Here Activity Description</td>
+                                            <td data-label="MET Value">19.0</td>
+                                            <td data-label="Duration">20 min.</td>
+                                            <td data-label="Calorie Out">25.4</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="net-calorie-data white-card">
+                            <h2>Net Calorie</h2>
+                            <div class="net-calorie-table">
+                                <div class="net-calorie-row">
+                                    <strong>BMR: </strong>
+                                    <span>-1800</span>
+                                </div>
+                               
+                                <div class="net-calorie-row">
+                                    <strong>Food: </strong>
+                                    <span>+1800</span>
+                                </div>
+                                <div class="net-calorie-row">
+                                    <strong>Activity: </strong>
+                                    <span>-2000</span>
+                                </div>
+                                <div class="net-calorie-row net-calorie-totl">
+                                    <strong>Net Calorie:</strong>
+                                    <span>-1800</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer class="footer">
+            <div class="container">
+                <p>2022 LMD Consulting, LLC , All Rights Reserved</p>
+            </div>
+        </footer>
+    </div>
+    <!-- Modal Box Start -->
+    <div class="modal fade" id="addDataModal" tabindex="-1" aria-labelledby="addDataModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content add-data-modal">
+                <div class="modal-header">
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link active" id="food-tab" data-toggle="tab" href="#food" role="tab"
+                                aria-controls="food" aria-selected="true">Add Food</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="activity-tab" data-toggle="tab" href="#activity" role="tab"
+                                aria-controls="activity" aria-selected="false">Add Activity</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-body">
+                    <div class="tab-content" id="myTabContent">
+                        <div class="tab-pane fade show active" id="food" role="tabpanel" aria-labelledby="food-tab">
+                            <div class="input-field">
+                                <label>Select Date</label>
+                                <input type="date" value="06/24/2022" placeholder="Age">
+                            </div>
+                            <div class="input-field">
+                                <label>Select Food Name</label>
+                                <select class="selectbox">
+                                    <option>Beans</option>
+                                    <option>Vegetable</option>
+                                    <option>Fast Food</option>
+                                    <option>fruits</option>
+                                </select>
+                            </div>
+                            <div class="input-field">
+                                <label>Select Meal Type</label>
+                                <select class="selectbox">
+                                    <option>Breakfast</option>
+                                    <option>Lunch</option>
+                                    <option>Dinner</option>
+                                </select>
+                            </div>
+                            <div class="input-field">
+                                <label>Select Food Group</label>
+                                <select class="selectbox">
+                                    <option>Beans</option>
+                                    <option>Vegetable</option>
+                                    <option>Fast Food</option>
+                                    <option>fruits</option>
+                                </select>
+                            </div>
+                            <div class="input-field">
+                                <label>Serving</label>
+                                <input type="text" placeholder="Serving">
+                            </div>
+                            <div class="input-field input-field-btn btn-set--center">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-primary" data-dismiss="modal">Save</button>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="activity" role="tabpanel" aria-labelledby="activity-tab">
+                            <div class="input-field">
+                                <label>Select Date</label>
+                                <input type="date" value="06/24/2022" placeholder="Age">
+                            </div>
+                            <div class="input-field">
+                                <label>Activity Name</label>
+                                <select class="selectbox">
+                                    <option>Bicycling</option>
+                                    <option>Mountain</option>
+                                    <option>Racing</option>
+                                </select>
+                            </div>
+                            <div class="input-field">
+                                <label>Activity Description</label>
+                                <textarea placeholder="Description"></textarea>
+                            </div>
+                            <div class="input-field">
+                                <label>MET Value</label>
+                                <input type="text" value="" placeholder="Value">
+                            </div>
+                            <div class="input-field">
+                                <label>Activity Duration</label>
+                                <input type="time" value="06/24/2022" placeholder="Age">
+                            </div>
+                            <div class="input-field input-field-btn btn-set--center">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-primary" data-dismiss="modal">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Box End -->
+</body>
+<script src="assets/js/jquery.slim.min.js"></script>
+<script src="assets/js/popper.min.js"></script>
+<script src="assets/js/bootstrap.min.js"></script>
+<script src="assets/js/custom.js"></script>
+
+</html>
