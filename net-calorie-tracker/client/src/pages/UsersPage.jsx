@@ -188,7 +188,7 @@ export function UsersPage({ onSelectUser }) {
         )}
         {status === 'ready' && users.length > 0 && (
           <>
-            <div className="user-table-header user-table-columns" aria-hidden="true">
+            <div className="user-table-header user-table-columns eyebrow" aria-hidden="true">
               <span>User</span>
               <span>Age</span>
               <span>Weight</span>
@@ -201,19 +201,19 @@ export function UsersPage({ onSelectUser }) {
                 <li key={user._id} className="user-row user-table-columns glass-panel glass-panel--strong">
                   <div className="user-row__cell user-row__cell--name">{user.name}</div>
                   <div className="user-row__cell mono">
-                    <span className="user-row__cell-label">Age</span>
+                    <span className="user-row__cell-label eyebrow">Age</span>
                     {user.age}y
                   </div>
                   <div className="user-row__cell mono">
-                    <span className="user-row__cell-label">Weight</span>
+                    <span className="user-row__cell-label eyebrow">Weight</span>
                     {user.weightKg} kg
                   </div>
                   <div className="user-row__cell mono">
-                    <span className="user-row__cell-label">Height</span>
+                    <span className="user-row__cell-label eyebrow">Height</span>
                     {user.heightCm} cm
                   </div>
                   <div className="user-row__cell mono">
-                    <span className="user-row__cell-label">Sex</span>
+                    <span className="user-row__cell-label eyebrow">Sex</span>
                     {user.sex === 'male' ? 'Male' : 'Female'}
                   </div>
                   <div className="user-row__actions">

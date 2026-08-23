@@ -1,40 +1,118 @@
 :root {
+  /* ---- Type families ---- */
   --font-sans: 'Sora', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
-  --bg-base: #090b12;
-  --bg-glow-a: rgba(56, 189, 248, 0.16);
-  --bg-glow-b: rgba(167, 139, 250, 0.14);
+  /* ---- Spacing scale (4px base) ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 2rem;
+  --space-8: 2.5rem;
+  --space-9: 3rem;
+  --space-10: 4rem;
 
-  --text-primary: #eef2f9;
-  --text-secondary: #9aa5b8;
-  --text-muted: #6b7488;
+  /* ---- Typography scale ---- */
+  --text-xs: 0.72rem;
+  --text-sm: 0.8rem;
+  --text-sm-plus: 0.85rem;
+  --text-base: 0.9rem;
+  --text-base-plus: 0.95rem;
+  --text-md: 1.05rem;
+  --text-lg: 1.15rem;
+  --text-xl: 1.4rem;
+  --text-2xl: 1.6rem;
+
+  --weight-regular: 400;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+
+  /* Semantic type roles (§16) */
+  --text-brand: var(--text-lg);
+  --text-page-heading: var(--text-xl);
+  --text-section-heading: var(--text-md);
+  --text-field-label: var(--text-sm);
+  --text-body: var(--text-base-plus);
+  --text-secondary-size: var(--text-sm-plus);
+  --text-metric-value: var(--text-2xl);
+  --text-metric-unit: var(--text-base-plus);
+  --text-eyebrow: var(--text-xs);
+
+  /* ---- Ink ramp (text colors, brightest to faintest) ---- */
+  --ink-1: #f4f7fc;
+  --ink-2: #eef2f9;
+  --ink-3: #c3cbdb;
+  --ink-4: #9aa5b8;
+  --ink-5: #7b8496;
+  --ink-6: #6b7488;
+  --ink-7: #4b5162;
+
+  --text-primary: var(--ink-2);
+  --text-secondary: var(--ink-4);
+  --text-muted: var(--ink-6);
+
+  /* ---- Surface / background ---- */
+  --bg-base: #090b12;
+  --bg-glow-accent: rgba(56, 189, 248, 0.14);
+  --bg-glow-wash: rgba(167, 139, 250, 0.07);
 
   --glass-bg: rgba(255, 255, 255, 0.045);
   --glass-bg-strong: rgba(255, 255, 255, 0.07);
   --glass-border: rgba(255, 255, 255, 0.09);
   --glass-border-strong: rgba(255, 255, 255, 0.16);
 
-  --accent: #38bdf8;
-  --accent-strong: #7dd3fc;
-  --accent-violet: #a78bfa;
-
-  --positive: #34d399;
-  --negative: #fb7185;
-
-  --danger: #f87171;
-  --danger-strong: #ef4444;
-
-  --radius-lg: 20px;
-  --radius-md: 14px;
-  --radius-sm: 10px;
-
-  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.35);
-  --blur-glass: blur(18px);
-
   --surface-elevated-bg: rgba(15, 22, 34, 0.98);
   --surface-elevated-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
 
+  /* ---- Accent (single primary hue: sky-cyan) ---- */
+  --accent: #38bdf8;
+  --accent-strong: #7dd3fc;
+  --accent-soft: rgba(56, 189, 248, 0.16);
+  --accent-wash: rgba(167, 139, 250, 0.1);
+
+  /* ---- Semantic colors ---- */
+  --success: #34d399;
+  --success-strong: #10b981;
+  --warning: #fbbf24;
+  --warning-strong: #f59e0b;
+  --danger: #f87171;
+  --danger-strong: #ef4444;
+  --info: #38bdf8;
+
+  --positive: var(--success);
+  --negative: var(--danger);
+
+  /* ---- Radius ---- */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 999px;
+
+  /* ---- Shadow ramp ---- */
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.28);
+  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.45);
+  --shadow-focus-ring: 0 0 0 3px var(--accent-soft);
+
+  --shadow-glass: var(--shadow-md);
+  --blur-glass: blur(18px);
+
+  /* ---- Transitions ---- */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 260ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+  /* ---- Z-index scale ---- */
   --z-base: 0;
   --z-card: 10;
   --z-sticky: 20;
@@ -42,4 +120,21 @@
   --z-popover: 150;
   --z-modal: 200;
   --z-toast: 300;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

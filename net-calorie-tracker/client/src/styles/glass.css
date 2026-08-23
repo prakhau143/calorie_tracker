@@ -11,11 +11,12 @@ body,
 body {
   margin: 0;
   font-family: var(--font-sans);
+  font-size: var(--text-body);
   color: var(--text-primary);
   background: var(--bg-base);
   background-image:
-    radial-gradient(circle at 12% 8%, var(--bg-glow-a), transparent 42%),
-    radial-gradient(circle at 88% 18%, var(--bg-glow-b), transparent 45%),
+    radial-gradient(circle at 12% 8%, var(--bg-glow-accent), transparent 42%),
+    radial-gradient(circle at 88% 18%, var(--bg-glow-wash), transparent 45%),
     radial-gradient(circle at 50% 100%, rgba(56, 189, 248, 0.06), transparent 55%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
@@ -38,6 +39,13 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
+.icon {
+  stroke: currentColor;
+  fill: none;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
 .glass-panel {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
@@ -54,13 +62,17 @@ a {
 
 .btn {
   font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: 0.9rem;
-  padding: 0.65rem 1.15rem;
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-base);
+  min-height: 44px;
+  padding: 0.65rem var(--space-5);
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   cursor: pointer;
-  transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+  transition: transform var(--duration-fast) var(--ease-standard),
+    background var(--duration-base) var(--ease-standard),
+    border-color var(--duration-base) var(--ease-standard),
+    filter var(--duration-base) var(--ease-standard);
 }
 
 .btn:active {
@@ -73,12 +85,12 @@ input:focus-visible,
 select:focus-visible,
 button:focus-visible,
 [role='option']:focus-visible {
-  outline: 2px solid var(--accent-strong);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--shadow-focus-ring);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent-violet));
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   color: #04121c;
 }
 
@@ -115,18 +127,18 @@ button:focus-visible,
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: var(--space-2);
 }
 
 .field label {
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: var(--text-field-label);
+  font-weight: var(--weight-semibold);
   color: var(--text-secondary);
   letter-spacing: 0.02em;
 }
 
 .field-error {
-  font-size: 0.78rem;
+  font-size: var(--text-xs);
   color: var(--danger-strong);
 }
 
@@ -135,9 +147,11 @@ select.input {
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--glass-border-strong);
   border-radius: var(--radius-sm);
-  padding: 0.6rem 0.75rem;
+  min-height: 44px;
+  padding: var(--space-3) var(--space-4);
   color: var(--text-primary);
-  font-size: 0.95rem;
+  font-size: var(--text-base-plus);
+  transition: border-color var(--duration-base) var(--ease-standard);
 }
 
 .input::placeholder {
@@ -159,4 +173,18 @@ select.input {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* Shared uppercase eyebrow label (collapses six near-identical variants) */
+.eyebrow {
+  margin: 0;
+  font-size: var(--text-eyebrow);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.metric-card__label {
+  color: var(--text-secondary);
 }
