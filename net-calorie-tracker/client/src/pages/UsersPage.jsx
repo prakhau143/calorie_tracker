@@ -201,47 +201,63 @@ export function UsersPage({ onSelectUser }) {
           <StatusPanel kind="empty" message="No users yet. Create your first profile to start tracking calories." />
         )}
         {status === 'ready' && users.length > 0 && (
-          <>
-            <div className="user-table-header user-table-columns eyebrow" aria-hidden="true">
-              <span>User</span>
-              <span>Age</span>
-              <span>Weight</span>
-              <span>Height</span>
-              <span>Sex</span>
-              <span>Actions</span>
+          <div role="table" aria-labelledby="users-heading" className="user-table">
+            <div className="user-table-header user-table-columns eyebrow" role="row">
+              <span role="columnheader">User</span>
+              <span role="columnheader">Age</span>
+              <span role="columnheader">Weight</span>
+              <span role="columnheader">Height</span>
+              <span role="columnheader">Sex</span>
+              <span role="columnheader">Actions</span>
             </div>
-            <ul className="user-list">
+            <ul className="user-list" role="rowgroup">
               {users.map((user) => (
-                <li key={user._id} className="user-row user-table-columns glass-panel glass-panel--strong">
-                  <div className="user-row__cell user-row__cell--name">{user.name}</div>
-                  <div className="user-row__cell mono">
+                <li
+                  key={user._id}
+                  className="user-row user-table-columns glass-panel glass-panel--strong"
+                  role="row"
+                >
+                  <div className="user-row__cell user-row__cell--name" role="cell" title={user.name}>
+                    {user.name}
+                  </div>
+                  <div className="user-row__cell mono" role="cell">
                     <span className="user-row__cell-label eyebrow">Age</span>
                     {user.age}y
                   </div>
-                  <div className="user-row__cell mono">
+                  <div className="user-row__cell mono" role="cell">
                     <span className="user-row__cell-label eyebrow">Weight</span>
                     {user.weightKg} kg
                   </div>
-                  <div className="user-row__cell mono">
+                  <div className="user-row__cell mono" role="cell">
                     <span className="user-row__cell-label eyebrow">Height</span>
                     {user.heightCm} cm
                   </div>
-                  <div className="user-row__cell mono">
+                  <div className="user-row__cell mono" role="cell">
                     <span className="user-row__cell-label eyebrow">Sex</span>
                     {user.sex === 'male' ? 'Male' : 'Female'}
                   </div>
-                  <div className="user-row__actions">
-                    <button type="button" className="btn btn-secondary" onClick={() => onSelectUser(user._id)}>
+                  <div className="user-row__actions" role="cell">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => onSelectUser(user._id)}
+                      aria-label={`View detail for ${user.name}`}
+                    >
                       View Detail
                     </button>
-                    <button type="button" className="btn btn-danger" onClick={() => setPendingDelete(user)}>
+                    <button
+                      type="button"
+                      className="btn btn-danger"
+                      onClick={() => setPendingDelete(user)}
+                      aria-label={`Delete ${user.name}`}
+                    >
                       Delete
                     </button>
                   </div>
                 </li>
               ))}
             </ul>
-          </>
+          </div>
         )}
       </section>
 

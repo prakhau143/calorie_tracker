@@ -158,13 +158,45 @@
   gap: var(--space-3);
 }
 
+/*
+ * Shared column template for the users table header and every row.
+ *
+ * IMPORTANT: every track's max sizing function must be a fixed length or an
+ * `fr` value — never `auto`/`min-content`/`max-content`. The header and each
+ * `.user-row` are separate grid containers, so a content-based max (as this
+ * used to be on the actions column: `minmax(180px, auto)`) resolves
+ * independently in each container. The header only ever has to fit the word
+ * "Actions" while a row has to fit two buttons, so the two containers ended
+ * up with different pixel widths for every column, not just the last one.
+ * Keeping every max as a plain length/fr ties both containers to the same
+ * available width instead of their own content, so header and row columns
+ * stay pixel-identical.
+ */
 .user-table-columns {
-  grid-template-columns: minmax(160px, 2fr) repeat(4, minmax(70px, 1fr)) minmax(180px, auto);
+  grid-template-columns:
+    minmax(200px, 2fr)
+    minmax(64px, 0.6fr)
+    minmax(88px, 0.85fr)
+    minmax(88px, 0.85fr)
+    minmax(76px, 0.7fr)
+    minmax(230px, 1.3fr);
 }
 
 .user-table-header {
   display: grid;
+  /* Must match .user-row's column-gap exactly: both are independent grid
+     containers sizing the same track list from the same available width,
+     and a gap difference between them (this rule previously had none)
+     shifts every resolved column by a few px, same failure mode as a
+     content-based track — see .user-table-columns above. */
+  gap: var(--space-4);
   padding: 0 var(--space-5) var(--space-3);
+}
+
+.user-table-header > span:last-child {
+  /* Right-align the "Actions" label over the actions column so it sits
+     above the buttons instead of floating at the track's left edge. */
+  justify-self: end;
 }
 
 .user-row {
@@ -178,10 +210,17 @@
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
+  /* Grid items default to min-width: auto (their content's min-content
+     size), which would stop the name column ever shrinking below the
+     longest unbroken run of text and defeat the ellipsis below. */
+  min-width: 0;
 }
 
 .user-row__cell--name {
   font-weight: var(--weight-semibold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-row__cell-label {
@@ -190,7 +229,10 @@
 
 .user-row__actions {
   display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
   gap: var(--space-2);
+  white-space: nowrap;
   justify-self: end;
 }
 
@@ -532,8 +574,25 @@
     display: none;
   }
 
+  /* Below the table breakpoint each user becomes a stacked card: the name
+     spans the full width, the four stat cells pair up two-per-line, and the
+     actions row spans the full width again — instead of forcing the
+     six-column desktop table into a squeeze that would need horizontal
+     scrolling. */
   .user-row.user-table-columns {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3) var(--space-4);
+  }
+
+  .user-row__cell--name,
+  .user-row__actions {
+    grid-column: 1 / -1;
+  }
+
+  .user-row__cell--name {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
   }
 
   .user-row__cell-label {
