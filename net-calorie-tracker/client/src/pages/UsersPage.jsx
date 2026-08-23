@@ -181,26 +181,47 @@ export function UsersPage({ onSelectUser }) {
           <StatusPanel kind="empty" message="No users yet. Create your first profile to start tracking calories." />
         )}
         {status === 'ready' && users.length > 0 && (
-          <ul className="user-list">
-            {users.map((user) => (
-              <li key={user._id} className="user-row glass-panel glass-panel--strong">
-                <div className="user-row__info">
-                  <span className="user-row__name">{user.name}</span>
-                  <span className="user-row__meta mono">
-                    {user.age}y · {user.weightKg}kg · {user.heightCm}cm · {user.sex}
-                  </span>
-                </div>
-                <div className="user-row__actions">
-                  <button type="button" className="btn btn-secondary" onClick={() => onSelectUser(user._id)}>
-                    View Detail
-                  </button>
-                  <button type="button" className="btn btn-danger" onClick={() => setPendingDelete(user)}>
-                    Delete
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <>
+            <div className="user-table-header user-table-columns" aria-hidden="true">
+              <span>User</span>
+              <span>Age</span>
+              <span>Weight</span>
+              <span>Height</span>
+              <span>Sex</span>
+              <span>Actions</span>
+            </div>
+            <ul className="user-list">
+              {users.map((user) => (
+                <li key={user._id} className="user-row user-table-columns glass-panel glass-panel--strong">
+                  <div className="user-row__cell user-row__cell--name">{user.name}</div>
+                  <div className="user-row__cell mono">
+                    <span className="user-row__cell-label">Age</span>
+                    {user.age}y
+                  </div>
+                  <div className="user-row__cell mono">
+                    <span className="user-row__cell-label">Weight</span>
+                    {user.weightKg} kg
+                  </div>
+                  <div className="user-row__cell mono">
+                    <span className="user-row__cell-label">Height</span>
+                    {user.heightCm} cm
+                  </div>
+                  <div className="user-row__cell mono">
+                    <span className="user-row__cell-label">Sex</span>
+                    {user.sex === 'male' ? 'Male' : 'Female'}
+                  </div>
+                  <div className="user-row__actions">
+                    <button type="button" className="btn btn-secondary" onClick={() => onSelectUser(user._id)}>
+                      View Detail
+                    </button>
+                    <button type="button" className="btn btn-danger" onClick={() => setPendingDelete(user)}>
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </section>
 

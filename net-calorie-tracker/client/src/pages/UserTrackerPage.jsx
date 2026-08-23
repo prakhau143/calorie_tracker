@@ -6,6 +6,7 @@ import { SearchSelect } from '../components/SearchSelect.jsx';
 import { StatusPanel } from '../components/StatusPanel.jsx';
 import { minAllowedDateString, shiftDateString, todayString, formatDateDisplay } from '../utils/dateWindow.js';
 import { calculateActivityCalories, calculateFoodCalories } from '../services/calc.js';
+import { titleCase } from '../utils/text.js';
 
 const MEAL_ORDER = ['breakfast', 'lunch', 'dinner', 'snack'];
 const MEAL_LABELS = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snack: 'Snack' };
@@ -171,6 +172,7 @@ function TrackerBody({ user, date }) {
       <div className="entry-columns">
         <section className="glass-panel entry-panel" aria-labelledby="food-heading">
           <h2 id="food-heading">Calories In</h2>
+          <h3 className="entry-subheading">Add Food</h3>
           <form className="entry-form" onSubmit={handleAddFood}>
             <SearchSelect
               label="Food"
@@ -225,31 +227,38 @@ function TrackerBody({ user, date }) {
             </button>
           </form>
 
+          <hr className="entry-divider" />
+          <h3 className="entry-subheading">Today's Food</h3>
           <FoodEntriesList entries={foodEntries} onRemove={removeFoodEntry} />
+          <div className="daily-total">
+            <span className="daily-total__label">Daily Total</span>
+            <span className="daily-total__value mono">{foodCalories} kcal</span>
+          </div>
         </section>
 
         <section className="glass-panel entry-panel" aria-labelledby="activity-heading">
           <h2 id="activity-heading">Calories Out</h2>
+          <h3 className="entry-subheading">Add Activity</h3>
           <form className="entry-form" onSubmit={handleAddActivity}>
             <SearchSelect
               label="Activity"
               placeholder="Search activities…"
               searchFn={searchActivities}
               onSelect={setSelectedActivity}
-              getOptionLabel={(a) => `${a.activityName} — ${a.specificMotion}`}
+              getOptionLabel={(a) => `${titleCase(a.activityName)} · ${a.specificMotion} · ${a.metValue} MET`}
               renderOption={(a) => (
                 <div>
-                  <div>
-                    {a.activityName} — {a.specificMotion}
+                  <div>{titleCase(a.activityName)}</div>
+                  <div className="search-select__sub mono">
+                    {a.specificMotion} · {a.metValue} MET
                   </div>
-                  <div className="search-select__sub mono">MET {a.metValue}</div>
                 </div>
               )}
             />
             {selectedActivity && (
               <p className="selection-note mono">
-                Selected: {selectedActivity.activityName} — {selectedActivity.specificMotion} (MET{' '}
-                {selectedActivity.metValue})
+                Selected: {titleCase(selectedActivity.activityName)} · {selectedActivity.specificMotion} ·{' '}
+                {selectedActivity.metValue} MET
               </p>
             )}
             <div className="field">
@@ -279,7 +288,13 @@ function TrackerBody({ user, date }) {
             </button>
           </form>
 
+          <hr className="entry-divider" />
+          <h3 className="entry-subheading">Today's Activities</h3>
           <ActivityEntriesList entries={activityEntries} onRemove={removeActivityEntry} />
+          <div className="daily-total">
+            <span className="daily-total__label">Daily Total</span>
+            <span className="daily-total__value mono">{activityCalories} kcal</span>
+          </div>
         </section>
       </div>
 
@@ -348,7 +363,7 @@ function ActivityEntriesList({ entries, onRemove }) {
       {entries.map((entry) => (
         <li key={entry.localId} className="entry-row">
           <span>
-            {entry.activityName} — {entry.specificMotion}{' '}
+            {titleCase(entry.activityName)} · {entry.specificMotion} · {entry.metValue} MET{' '}
             <span className="mono entry-row__meta">
               {entry.durationMinutes} min · {entry.caloriesBurned} kcal
             </span>
