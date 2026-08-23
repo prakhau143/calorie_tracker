@@ -84,6 +84,18 @@ npm run import:activities  # 821 rows from ../data/MET-values.xlsx
 Both importers are idempotent (upsert by a stable key), so re-running them is safe and will
 not create duplicates.
 
+Reference-data indexes (`sourceId`/`sourceKey` uniqueness, search fields) are declared on the
+Mongoose schemas but only *created* in MongoDB when explicitly synced — run this once per
+database (local or Atlas):
+
+```bash
+npm run sync-indexes
+```
+
+This is intentionally not run automatically on every server start: on a long-running local
+process it'd be wasted work after the first run, and on a serverless deployment it would fire
+on every cold start.
+
 ## Run
 
 ```bash
@@ -126,6 +138,71 @@ Base path `/api`. Every response is enveloped as `{"success": true, "data": …}
 
 The date window for daily logs is today through 30 days in the past; future dates and dates
 older than 30 days are rejected with a 400.
+
+## Deployment (Vercel + Atlas)
+
+The app deploys as a **single Vercel project**: the Vite build is served as static assets and
+the Express API runs as one Node serverless function (`api/index.js`, exporting `createApp()`
+from `server/src/app.js`), so the SPA and API share an origin in production — no CORS
+configuration needed there, and `VITE_API_URL` can simply be the relative path `/api`.
+
+### 1. Database — MongoDB Atlas
+
+MongoDB is not available as a Vercel Marketplace integration for every account, so this is a
+direct Atlas setup:
+
+1. Create a free **M0** cluster (512 MB — the full imported dataset is ~5 MB, so this has
+   enormous headroom).
+2. Create a database user scoped to this cluster with a generated password.
+3. Network Access → allow `0.0.0.0/0`. Vercel's Hobby tier has no static outbound IPs, so this
+   is the honest tradeoff: access is then gated by the username/password alone, which is why
+   the password must be strong and must never be committed.
+4. Copy the connection string into `net-calorie-tracker/.env` as `MONGO_URI` (do not paste it
+   into chat, a PR, or any tracked file).
+5. Seed it by running the importers locally against that URI:
+   ```bash
+   cd server
+   npm run import:foods
+   npm run import:activities
+   npm run sync-indexes
+   ```
+   Importing is a manual, one-time (or as-needed) operation — it is **not** part of the Vercel
+   build, so it never re-runs on every deploy.
+
+### 2. Vercel project
+
+1. Import the repo in Vercel and set **Root Directory** to `net-calorie-tracker`.
+2. Vercel picks up `vercel.json` in that directory automatically:
+   - `buildCommand`: `npm run build --workspace client`
+   - `outputDirectory`: `client/dist`
+   - `rewrites`: `/api/*` → the serverless function; everything else → `index.html` (so a hard
+     refresh on a client-rendered route doesn't 404).
+3. Set these Environment Variables in the Vercel project settings (Production, and Preview if
+   you want preview deploys to work too):
+
+   | Variable         | Value                                              |
+   | ----------------- | --------------------------------------------------- |
+   | `MONGO_URI`        | the Atlas connection string from step 1              |
+   | `CLIENT_ORIGIN`    | the deployed URL (e.g. `https://net-calorie-tracker.vercel.app`) |
+   | `NODE_ENV`         | `production`                                          |
+   | `VITE_API_URL`     | `/api` (relative — same-origin in production)         |
+
+4. Deploy. Vercel builds the client and provisions `api/index.js` as a serverless function in
+   the same step.
+
+### 3. Serverless connection reuse
+
+`server/src/config/db.js` caches the Mongoose connection promise at module scope instead of
+reconnecting (and re-syncing indexes) on every call, so warm serverless invocations reuse the
+existing connection rather than opening a new one per request. `server/src/server.js`
+(`app.listen`) is unaffected and remains the entry point for local dev only.
+
+### 4. Verify the production deployment
+
+- `GET https://<your-app>.vercel.app/api/health` → `{"success":true,"data":{"status":"ok"}}`
+- User CRUD, food search, activity search, and daily-log save/load against the deployed URL.
+- Deep-link / hard-refresh on the tracker view returns the app, not a 404 (SPA rewrite).
+- Favicon and Google Fonts load; no development stack traces appear in error responses.
 
 ## Postman
 
