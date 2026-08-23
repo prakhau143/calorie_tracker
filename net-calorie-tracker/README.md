@@ -57,6 +57,25 @@ Layered surfaces (search dropdowns, the delete-confirmation dialog) are intentio
 not glass — and follow a shared z-index scale in `client/src/styles/tokens.css`, so they never
 blend into the content behind them.
 
+## Theme
+
+A header toggle switches between light and dark. Both are designed palettes, not one
+inverted: the light theme uses an off-white ground so elevated surfaces can be pure white and
+still read as raised, ink-tinted borders and films instead of white ones, soft ink-blue
+shadows rather than black, and a darker accent (`#0284c7`) because the dark theme's
+`#38bdf8` is only ~1.9:1 on white.
+
+All colour lives in `client/src/styles/tokens.css` behind semantic names — `--surface`,
+`--border`, `--overlay`, `--on-accent`, and an `--ink-*` ramp ordered by *contrast against
+the current surface* rather than by lightness, which is what lets the same names work in both
+themes. No component file contains a literal colour.
+
+The choice persists in `localStorage`; until one is made the app follows
+`prefers-color-scheme` and keeps tracking OS changes. A small inline script in `index.html`
+applies the theme before first paint, so there is no flash of the wrong palette on load — it
+duplicates the storage key, which is the one intentional bit of duplication here since it
+must run before the bundle.
+
 ## Prerequisites
 
 - Node.js 20+
@@ -112,9 +131,17 @@ cd client && npm run dev      # http://localhost:5173
 cd server && npm test         # unit tests (BMR/calorie/date-window) + API tests (Vitest + Supertest)
 ```
 
-The API tests (`server/tests/api.test.js`) run against a separate `net-calorie-tracker-test`
-database on the same Mongo instance — seeded in `beforeAll`, dropped in `afterAll` — so they
-never touch the data seeded by the importers.
+The API tests (`server/tests/api.test.js`) call `dropDatabase()`, so they deliberately do
+**not** read `MONGO_URI` — that points at Atlas once deployment is configured. They default to
+`mongodb://localhost:27017/net-calorie-tracker-test`, which means a **local MongoDB must be
+running** (see Prerequisites) or the six API tests fail. Point them elsewhere with:
+
+```bash
+TEST_MONGO_URI=mongodb://host:27017/some-test-db npm test
+```
+
+The database is seeded in `beforeAll` and dropped in `afterAll`, so the tests never touch the
+data loaded by the importers.
 
 ## API
 
