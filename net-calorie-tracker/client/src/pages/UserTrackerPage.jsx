@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../services/api.js';
 import { useDailyLog } from '../hooks/useDailyLog.js';
 import { MetricCard } from '../components/MetricCard.jsx';
 import { SearchSelect } from '../components/SearchSelect.jsx';
 import { StatusPanel } from '../components/StatusPanel.jsx';
+import { Icon } from '../components/Icon.jsx';
 import { minAllowedDateString, shiftDateString, todayString, formatDateDisplay } from '../utils/dateWindow.js';
 import { calculateActivityCalories, calculateFoodCalories } from '../services/calc.js';
 import { titleCase } from '../utils/text.js';
@@ -11,7 +12,7 @@ import { titleCase } from '../utils/text.js';
 const MEAL_ORDER = ['breakfast', 'lunch', 'dinner', 'snack'];
 const MEAL_LABELS = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snack: 'Snack' };
 
-export function UserTrackerPage({ userId, onBack }) {
+export function UserTrackerPage({ userId, onBack, onHeaderChange }) {
   const [user, setUser] = useState(null);
   const [userStatus, setUserStatus] = useState('loading');
   const [date, setDate] = useState(todayString());
@@ -26,15 +27,35 @@ export function UserTrackerPage({ userId, onBack }) {
       .catch(() => setUserStatus('error'));
   }, [userId]);
 
+  const leading = useMemo(
+    () => (
+      <button type="button" className="btn btn-secondary btn-nav-back" onClick={onBack}>
+        <Icon name="back" size={16} /> Users
+      </button>
+    ),
+    [onBack],
+  );
+
+  const title = useMemo(
+    () => (
+      <>
+        <span className="app-header__mark">NET//CAL</span>
+        <span className="app-header__tagline">{user ? user.name : 'Loading…'}</span>
+      </>
+    ),
+    [user],
+  );
+
+  useEffect(() => {
+    onHeaderChange?.({ leading, title });
+    return () => onHeaderChange?.(null);
+  }, [leading, title, onHeaderChange]);
+
   const minDate = minAllowedDateString();
   const maxDate = todayString();
 
   return (
     <div className="tracker-page">
-      <button type="button" className="btn btn-secondary back-link" onClick={onBack}>
-        ← Back to Users
-      </button>
-
       {userStatus === 'loading' && <StatusPanel kind="loading" message="Loading user…" />}
       {userStatus === 'error' && <StatusPanel kind="error" message="Could not load this user." />}
 
@@ -50,12 +71,12 @@ export function UserTrackerPage({ userId, onBack }) {
             <div className="date-nav">
               <button
                 type="button"
-                className="btn btn-secondary"
+                className="btn btn-secondary btn-icon"
                 onClick={() => setDate((d) => (d > minDate ? shiftDateString(d, -1) : d))}
                 disabled={date <= minDate}
                 aria-label="Previous day"
               >
-                ‹
+                <Icon name="chevron-left" size={16} />
               </button>
               <label className="visually-hidden" htmlFor="date-picker">
                 Selected date
@@ -71,12 +92,12 @@ export function UserTrackerPage({ userId, onBack }) {
               />
               <button
                 type="button"
-                className="btn btn-secondary"
+                className="btn btn-secondary btn-icon"
                 onClick={() => setDate((d) => (d < maxDate ? shiftDateString(d, 1) : d))}
                 disabled={date >= maxDate}
                 aria-label="Next day"
               >
-                ›
+                <Icon name="chevron-right" size={16} />
               </button>
             </div>
           </header>
@@ -171,7 +192,7 @@ function TrackerBody({ user, date }) {
       <div className="entry-columns">
         <section className="glass-panel entry-panel" aria-labelledby="food-heading">
           <h2 id="food-heading">Calories In</h2>
-          <h3 className="entry-subheading">Add Food</h3>
+          <h3 className="entry-subheading eyebrow">Add Food</h3>
           <form className="entry-form" onSubmit={handleAddFood}>
             <SearchSelect
               label="Food"
@@ -218,7 +239,7 @@ function TrackerBody({ user, date }) {
             </div>
             {foodPreviewCalories !== null && (
               <p className="preview mono">
-                {quantityGrams} g → {foodPreviewCalories} kcal
+                {quantityGrams} g <Icon name="chevron-right" size={14} /> {foodPreviewCalories} kcal
               </p>
             )}
             <button type="submit" className="btn btn-primary" disabled={!selectedFood || !(Number(quantityGrams) > 0)}>
@@ -227,17 +248,17 @@ function TrackerBody({ user, date }) {
           </form>
 
           <hr className="entry-divider" />
-          <h3 className="entry-subheading">Today's Food</h3>
+          <h3 className="entry-subheading eyebrow">Today's Food</h3>
           <FoodEntriesList entries={foodEntries} onRemove={removeFoodEntry} />
           <div className="daily-total">
-            <span className="daily-total__label">Daily Total</span>
+            <span className="daily-total__label eyebrow">Daily Total</span>
             <span className="daily-total__value mono">{foodCalories} kcal</span>
           </div>
         </section>
 
         <section className="glass-panel entry-panel" aria-labelledby="activity-heading">
           <h2 id="activity-heading">Calories Out</h2>
-          <h3 className="entry-subheading">Add Activity</h3>
+          <h3 className="entry-subheading eyebrow">Add Activity</h3>
           <form className="entry-form" onSubmit={handleAddActivity}>
             <SearchSelect
               label="Activity"
@@ -288,10 +309,10 @@ function TrackerBody({ user, date }) {
           </form>
 
           <hr className="entry-divider" />
-          <h3 className="entry-subheading">Today's Activities</h3>
+          <h3 className="entry-subheading eyebrow">Today's Activities</h3>
           <ActivityEntriesList entries={activityEntries} onRemove={removeActivityEntry} />
           <div className="daily-total">
-            <span className="daily-total__label">Daily Total</span>
+            <span className="daily-total__label eyebrow">Daily Total</span>
             <span className="daily-total__value mono">{activityCalories} kcal</span>
           </div>
         </section>
@@ -307,7 +328,9 @@ function TrackerBody({ user, date }) {
           </span>
         )}
         {!saveError && lastSavedAt && (
-          <span className="save-bar__status mono">Saved ✓ for {formatDateDisplay(date)}</span>
+          <span className="save-bar__status mono">
+            <Icon name="save" size={14} /> Saved for {formatDateDisplay(date)}
+          </span>
         )}
       </div>
     </div>
@@ -323,7 +346,7 @@ function FoodEntriesList({ entries, onRemove }) {
     <div className="entries-list">
       {MEAL_ORDER.filter((meal) => entries.some((e) => e.meal === meal)).map((meal) => (
         <div key={meal} className="entries-group">
-          <h3 className="entries-group__title">{MEAL_LABELS[meal]}</h3>
+          <h3 className="entries-group__title eyebrow">{MEAL_LABELS[meal]}</h3>
           <ul>
             {entries
               .filter((entry) => entry.meal === meal)
@@ -341,7 +364,7 @@ function FoodEntriesList({ entries, onRemove }) {
                     onClick={() => onRemove(entry.localId)}
                     aria-label={`Remove ${entry.foodName}`}
                   >
-                    ✕
+                    <Icon name="close" size={14} />
                   </button>
                 </li>
               ))}
@@ -373,7 +396,7 @@ function ActivityEntriesList({ entries, onRemove }) {
             onClick={() => onRemove(entry.localId)}
             aria-label={`Remove ${entry.activityName}`}
           >
-            ✕
+            <Icon name="close" size={14} />
           </button>
         </li>
       ))}
