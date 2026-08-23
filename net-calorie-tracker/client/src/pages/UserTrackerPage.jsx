@@ -308,7 +308,7 @@ function TrackerBody({ user, date }) {
           </span>
         )}
         {!saveError && lastSavedAt && (
-          <span className="save-bar__status mono">Saved for {formatDateDisplay(date)}</span>
+          <span className="save-bar__status mono">Saved ✓ for {formatDateDisplay(date)}</span>
         )}
       </div>
     </div>
