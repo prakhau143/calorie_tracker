@@ -21,7 +21,7 @@ export function ConfirmDialog({ open, title, description, confirmLabel = 'Confir
   return (
     <div className="dialog-overlay" role="presentation" onClick={onCancel}>
       <div
-        className="dialog glass-panel glass-panel--strong"
+        className="dialog"
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="dialog-title"

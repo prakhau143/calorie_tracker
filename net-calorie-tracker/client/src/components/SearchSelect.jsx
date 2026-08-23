@@ -100,7 +100,7 @@ export function SearchSelect({
         />
       </label>
       {open && (
-        <ul className="search-select__listbox glass-panel glass-panel--strong" id={`${listboxId}-listbox`} role="listbox">
+        <ul className="search-select__listbox" id={`${listboxId}-listbox`} role="listbox">
           {loading && <li className="search-select__status">Searching…</li>}
           {!loading && debouncedQuery.trim().length < minChars && (
             <li className="search-select__status">Type to search…</li>

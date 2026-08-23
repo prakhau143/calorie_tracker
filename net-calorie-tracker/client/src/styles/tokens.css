@@ -31,4 +31,15 @@
 
   --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.35);
   --blur-glass: blur(18px);
+
+  --surface-elevated-bg: rgba(15, 22, 34, 0.98);
+  --surface-elevated-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+
+  --z-base: 0;
+  --z-card: 10;
+  --z-sticky: 20;
+  --z-dropdown: 100;
+  --z-popover: 150;
+  --z-modal: 200;
+  --z-toast: 300;
 }
