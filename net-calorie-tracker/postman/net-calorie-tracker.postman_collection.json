@@ -1,0 +1,167 @@
+{
+  "info": {
+    "name": "Net Calorie Tracker",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:4000/api" },
+    { "key": "userId", "value": "" },
+    { "key": "foodId", "value": "" },
+    { "key": "activityId", "value": "" },
+    { "key": "date", "value": "2026-08-23" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success) pm.collectionVariables.set('userId', json.data._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/users",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Prakhar Mittal\",\n  \"age\": 25,\n  \"weightKg\": 72,\n  \"heightCm\": 178,\n  \"sex\": \"male\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Users",
+          "request": { "method": "GET", "url": "{{baseUrl}}/users" }
+        },
+        {
+          "name": "Get User",
+          "request": { "method": "GET", "url": "{{baseUrl}}/users/{{userId}}" }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/users/{{userId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weightKg\": 73\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/users/{{userId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Foods",
+      "item": [
+        {
+          "name": "Search Foods",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data.items.length) pm.collectionVariables.set('foodId', json.data.items[0]._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/foods?search=chicken&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["foods"],
+              "query": [
+                { "key": "search", "value": "chicken" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Food",
+          "request": { "method": "GET", "url": "{{baseUrl}}/foods/{{foodId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Activities",
+      "item": [
+        {
+          "name": "Search Activities",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data.items.length) pm.collectionVariables.set('activityId', json.data.items[0]._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/activities?search=tennis&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["activities"],
+              "query": [
+                { "key": "search", "value": "tennis" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Activity",
+          "request": { "method": "GET", "url": "{{baseUrl}}/activities/{{activityId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Daily Log",
+      "item": [
+        {
+          "name": "Get Day",
+          "request": { "method": "GET", "url": "{{baseUrl}}/users/{{userId}}/days/{{date}}" }
+        },
+        {
+          "name": "Save Day",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/users/{{userId}}/days/{{date}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"foodEntries\": [\n    { \"foodId\": \"{{foodId}}\", \"meal\": \"breakfast\", \"quantityGrams\": 150 }\n  ],\n  \"activityEntries\": [\n    { \"activityId\": \"{{activityId}}\", \"durationMinutes\": 45 }\n  ]\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
