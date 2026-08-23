@@ -24,24 +24,33 @@ export function UsersPage({ onSelectUser }) {
   const [submitError, setSubmitError] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
 
-  function fetchUsers() {
-    api
+  function fetchUsers(isCancelled = () => false) {
+    return api
       .listUsers()
       .then((data) => {
+        if (isCancelled()) return;
         setUsers(data);
         setStatus('ready');
       })
-      .catch(() => setStatus('error'));
+      .catch(() => {
+        if (!isCancelled()) setStatus('error');
+      });
   }
 
   function reloadUsers() {
     setStatus('loading');
-    fetchUsers();
+    return fetchUsers();
   }
 
   useEffect(() => {
-    fetchUsers();
+    // Guard against a slow response resolving after unmount.
+    let cancelled = false;
+    fetchUsers(() => cancelled);
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function handleSubmit(e) {
@@ -71,10 +80,15 @@ export function UsersPage({ onSelectUser }) {
 
   async function confirmDelete() {
     setDeleting(true);
+    setDeleteError(null);
     try {
       await api.deleteUser(pendingDelete._id);
       setPendingDelete(null);
       reloadUsers();
+    } catch (err) {
+      // Without this the rejection was unhandled and the dialog silently
+      // reopened, leaving the user with no idea the delete had failed.
+      setDeleteError(err.message);
     } finally {
       setDeleting(false);
     }
@@ -234,10 +248,17 @@ export function UsersPage({ onSelectUser }) {
       <ConfirmDialog
         open={Boolean(pendingDelete)}
         title="Delete this user?"
-        description="This will also remove the user's saved daily calorie logs."
+        description={
+          deleteError
+            ? `Could not delete this user: ${deleteError}`
+            : "This will also remove the user's saved daily calorie logs."
+        }
         confirmLabel={deleting ? 'Deleting…' : 'Delete'}
         onConfirm={confirmDelete}
-        onCancel={() => setPendingDelete(null)}
+        onCancel={() => {
+          setPendingDelete(null);
+          setDeleteError(null);
+        }}
       />
     </div>
   );

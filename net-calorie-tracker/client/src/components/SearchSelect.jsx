@@ -31,6 +31,9 @@ export function SearchSelect({
       return;
     }
     let cancelled = false;
+    // Synchronising with an external system (the search API) is exactly what
+    // effects are for; the flag has to flip as the request starts.
+    // oxlint-disable-next-line react/set-state-in-effect
     setLoading(true);
     searchFn(debouncedQuery)
       .then((result) => {
@@ -138,6 +141,15 @@ export function SearchSelect({
           onKeyDown={handleKeyDown}
         />
       </label>
+      {/* The listbox itself can't carry aria-live (its children must stay
+          options), so result counts are announced from here instead. */}
+      <span className="visually-hidden" role="status" aria-live="polite">
+        {open && debouncedQuery.trim().length >= minChars && !loading
+          ? options.length === 0
+            ? 'No matches'
+            : `${options.length} result${options.length === 1 ? '' : 's'} available`
+          : ''}
+      </span>
       {open &&
         position &&
         createPortal(

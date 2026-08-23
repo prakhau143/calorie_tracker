@@ -63,7 +63,10 @@ export function UserTrackerPage({ userId, onBack, onHeaderChange }) {
         <>
           <header className="tracker-header glass-panel">
             <div>
-              <h1 className="tracker-header__name">{user.name.toUpperCase()}</h1>
+              {/* Uppercased in CSS, not JS: screen readers spell out
+                  all-caps short names, and the accessible name should match
+                  what was actually stored. */}
+              <h1 className="tracker-header__name">{user.name}</h1>
               <p className="tracker-header__meta mono">
                 {user.weightKg} kg · {user.heightCm} cm · {user.sex === 'male' ? 'Male' : 'Female'}
               </p>
@@ -88,7 +91,13 @@ export function UserTrackerPage({ userId, onBack, onHeaderChange }) {
                 value={date}
                 min={minDate}
                 max={maxDate}
-                onChange={(e) => e.target.value && setDate(e.target.value)}
+                // Ignoring empty values entirely made the field fight the
+                // user when they cleared it; instead keep the last valid date
+                // and only commit real ones.
+                onChange={(e) => {
+                  const next = e.target.value;
+                  if (next && next >= minDate && next <= maxDate) setDate(next);
+                }}
               />
               <button
                 type="button"
@@ -192,7 +201,7 @@ function TrackerBody({ user, date }) {
       <div className="entry-columns">
         <section className="glass-panel entry-panel" aria-labelledby="food-heading">
           <h2 id="food-heading">Calories In</h2>
-          <h3 className="entry-subheading eyebrow">Add Food</h3>
+          <h3 className="eyebrow">Add Food</h3>
           <form className="entry-form" onSubmit={handleAddFood}>
             <SearchSelect
               label="Food"
@@ -248,17 +257,17 @@ function TrackerBody({ user, date }) {
           </form>
 
           <hr className="entry-divider" />
-          <h3 className="entry-subheading eyebrow">Today's Food</h3>
+          <h3 className="eyebrow">Today's Food</h3>
           <FoodEntriesList entries={foodEntries} onRemove={removeFoodEntry} />
           <div className="daily-total">
-            <span className="daily-total__label eyebrow">Daily Total</span>
+            <span className="eyebrow">Daily Total</span>
             <span className="daily-total__value mono">{foodCalories} kcal</span>
           </div>
         </section>
 
         <section className="glass-panel entry-panel" aria-labelledby="activity-heading">
           <h2 id="activity-heading">Calories Out</h2>
-          <h3 className="entry-subheading eyebrow">Add Activity</h3>
+          <h3 className="eyebrow">Add Activity</h3>
           <form className="entry-form" onSubmit={handleAddActivity}>
             <SearchSelect
               label="Activity"
@@ -309,10 +318,10 @@ function TrackerBody({ user, date }) {
           </form>
 
           <hr className="entry-divider" />
-          <h3 className="entry-subheading eyebrow">Today's Activities</h3>
+          <h3 className="eyebrow">Today's Activities</h3>
           <ActivityEntriesList entries={activityEntries} onRemove={removeActivityEntry} />
           <div className="daily-total">
-            <span className="daily-total__label eyebrow">Daily Total</span>
+            <span className="eyebrow">Daily Total</span>
             <span className="daily-total__value mono">{activityCalories} kcal</span>
           </div>
         </section>
@@ -327,8 +336,10 @@ function TrackerBody({ user, date }) {
             {saveError}
           </span>
         )}
+        {/* The failure path already announces via role="alert"; success was
+            silent to screen readers until this live region. */}
         {!saveError && lastSavedAt && (
-          <span className="save-bar__status mono">
+          <span className="save-bar__status mono" role="status" aria-live="polite">
             <Icon name="save" size={14} /> Saved for {formatDateDisplay(date)}
           </span>
         )}
@@ -346,7 +357,7 @@ function FoodEntriesList({ entries, onRemove }) {
     <div className="entries-list">
       {MEAL_ORDER.filter((meal) => entries.some((e) => e.meal === meal)).map((meal) => (
         <div key={meal} className="entries-group">
-          <h3 className="entries-group__title eyebrow">{MEAL_LABELS[meal]}</h3>
+          <h3 className="eyebrow">{MEAL_LABELS[meal]}</h3>
           <ul>
             {entries
               .filter((entry) => entry.meal === meal)
