@@ -1,12 +1,19 @@
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_PAST_DAYS = 30;
 
-// "Today" is the server's local calendar date, not UTC — a plain YYYY-MM-DD
-// date string has no timezone of its own, and comparing it against UTC would
-// reject a user's real "today" whenever the server sits east of UTC.
-function todayLocalAsUtcMidnight() {
+// The server has no idea what timezone the client is in — a plain YYYY-MM-DD
+// string carries no offset of its own. A client east of UTC (e.g. IST,
+// UTC+5:30) can have a local "today" that is still "tomorrow" relative to
+// the server's UTC clock; a client west of UTC can likewise have a local
+// date one day behind. Rather than guess, the window is anchored to the
+// server's own UTC date and widened by a day on each edge so a user's real
+// "today" (or their real "30 days ago") is never rejected purely because of
+// clock skew between the two.
+const SKEW_TOLERANCE_DAYS = 1;
+
+function serverTodayAsUtcMidnight() {
   const now = new Date();
-  return Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
 }
 
 function parseDateStringAsUtcMidnight(value) {
@@ -24,7 +31,7 @@ export function isValidDateString(value) {
 export function isWithinAllowedWindow(value) {
   if (!isValidDateString(value)) return false;
   const dateMs = parseDateStringAsUtcMidnight(value);
-  const todayMs = todayLocalAsUtcMidnight();
+  const todayMs = serverTodayAsUtcMidnight();
   const diffDays = Math.round((todayMs - dateMs) / DAY_MS);
-  return diffDays >= 0 && diffDays <= MAX_PAST_DAYS;
+  return diffDays >= -SKEW_TOLERANCE_DAYS && diffDays <= MAX_PAST_DAYS + SKEW_TOLERANCE_DAYS;
 }

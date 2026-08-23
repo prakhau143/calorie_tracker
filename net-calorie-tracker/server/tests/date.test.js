@@ -27,15 +27,27 @@ describe('isWithinAllowedWindow', () => {
     expect(isWithinAllowedWindow(toDateString(date))).toBe(true);
   });
 
-  it('rejects 31 days in the past', () => {
+  it('accepts 31 days in the past (client-timezone skew tolerance)', () => {
     const date = new Date(fixedNow);
     date.setUTCDate(date.getUTCDate() - 31);
+    expect(isWithinAllowedWindow(toDateString(date))).toBe(true);
+  });
+
+  it('rejects 32 days in the past', () => {
+    const date = new Date(fixedNow);
+    date.setUTCDate(date.getUTCDate() - 32);
     expect(isWithinAllowedWindow(toDateString(date))).toBe(false);
   });
 
-  it('rejects tomorrow', () => {
+  it('accepts tomorrow (client-timezone skew tolerance)', () => {
     const date = new Date(fixedNow);
     date.setUTCDate(date.getUTCDate() + 1);
+    expect(isWithinAllowedWindow(toDateString(date))).toBe(true);
+  });
+
+  it('rejects the day after tomorrow', () => {
+    const date = new Date(fixedNow);
+    date.setUTCDate(date.getUTCDate() + 2);
     expect(isWithinAllowedWindow(toDateString(date))).toBe(false);
   });
 
