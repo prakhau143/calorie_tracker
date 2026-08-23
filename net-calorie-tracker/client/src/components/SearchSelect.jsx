@@ -1,5 +1,9 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useDebounce } from '../hooks/useDebounce.js';
+
+const LISTBOX_MARGIN = 6;
+const LISTBOX_MAX_HEIGHT = 260;
 
 export function SearchSelect({
   label,
@@ -15,13 +19,15 @@ export function SearchSelect({
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [position, setPosition] = useState(null);
   const debouncedQuery = useDebounce(query, 300);
   const listboxId = useId();
   const containerRef = useRef(null);
+  const inputRef = useRef(null);
+  const listboxRef = useRef(null);
 
   useEffect(() => {
     if (!open || debouncedQuery.trim().length < minChars) {
-      setOptions([]);
       return;
     }
     let cancelled = false;
@@ -40,13 +46,44 @@ export function SearchSelect({
 
   useEffect(() => {
     function handleClickOutside(e) {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
+      const insideInput = containerRef.current && containerRef.current.contains(e.target);
+      const insideListbox = listboxRef.current && listboxRef.current.contains(e.target);
+      if (!insideInput && !insideListbox) {
         setOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function updatePosition() {
+      const inputEl = inputRef.current;
+      if (!inputEl) return;
+      const rect = inputEl.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const openUpward = spaceBelow < LISTBOX_MAX_HEIGHT + LISTBOX_MARGIN && spaceAbove > spaceBelow;
+
+      setPosition({
+        left: rect.left,
+        width: rect.width,
+        top: openUpward ? undefined : rect.bottom + LISTBOX_MARGIN,
+        bottom: openUpward ? window.innerHeight - rect.top + LISTBOX_MARGIN : undefined,
+        maxHeight: Math.min(LISTBOX_MAX_HEIGHT, (openUpward ? spaceAbove : spaceBelow) - LISTBOX_MARGIN * 2),
+      });
+    }
+
+    updatePosition();
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [open, options.length, loading]);
 
   function selectOption(option) {
     onSelect(option);
@@ -82,6 +119,7 @@ export function SearchSelect({
         <span>{label}</span>
         <input
           id={listboxId}
+          ref={inputRef}
           className="input"
           type="text"
           role="combobox"
@@ -93,41 +131,58 @@ export function SearchSelect({
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
+            setOptions([]);
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
         />
       </label>
-      {open && (
-        <ul className="search-select__listbox" id={`${listboxId}-listbox`} role="listbox">
-          {loading && <li className="search-select__status">Searching…</li>}
-          {!loading && debouncedQuery.trim().length < minChars && (
-            <li className="search-select__status">Type to search…</li>
-          )}
-          {!loading && debouncedQuery.trim().length >= minChars && options.length === 0 && (
-            <li className="search-select__status">No matches</li>
-          )}
-          {!loading &&
-            options.map((option, index) => (
-              <li
-                key={option._id}
-                id={`${listboxId}-option-${index}`}
-                role="option"
-                aria-selected={index === activeIndex}
-                tabIndex={-1}
-                className={`search-select__option${index === activeIndex ? ' is-active' : ''}`}
-                onMouseEnter={() => setActiveIndex(index)}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  selectOption(option);
-                }}
-              >
-                {renderOption ? renderOption(option) : getOptionLabel(option)}
-              </li>
-            ))}
-        </ul>
-      )}
+      {open &&
+        position &&
+        createPortal(
+          <ul
+            ref={listboxRef}
+            className="search-select__listbox"
+            id={`${listboxId}-listbox`}
+            role="listbox"
+            style={{
+              left: position.left,
+              width: position.width,
+              top: position.top,
+              bottom: position.bottom,
+              maxHeight: position.maxHeight,
+            }}
+          >
+            {loading && <li className="search-select__status">Searching…</li>}
+            {!loading && debouncedQuery.trim().length < minChars && (
+              <li className="search-select__status">Type to search…</li>
+            )}
+            {!loading && debouncedQuery.trim().length >= minChars && options.length === 0 && (
+              <li className="search-select__status">No matches</li>
+            )}
+            {!loading &&
+              debouncedQuery.trim().length >= minChars &&
+              options.map((option, index) => (
+                <li
+                  key={option._id}
+                  id={`${listboxId}-option-${index}`}
+                  role="option"
+                  aria-selected={index === activeIndex}
+                  tabIndex={-1}
+                  className={`search-select__option${index === activeIndex ? ' is-active' : ''}`}
+                  onMouseEnter={() => setActiveIndex(index)}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    selectOption(option);
+                  }}
+                >
+                  {renderOption ? renderOption(option) : getOptionLabel(option)}
+                </li>
+              ))}
+          </ul>,
+          document.body,
+        )}
     </div>
   );
 }
