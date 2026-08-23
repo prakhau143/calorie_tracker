@@ -8,6 +8,7 @@
     "start": "node src/server.js",
     "import:foods": "node scripts/import-foods.js",
     "import:activities": "node scripts/import-activities.js",
+    "sync-indexes": "node scripts/sync-indexes.js",
     "test": "vitest run"
   },
   "dependencies": {
