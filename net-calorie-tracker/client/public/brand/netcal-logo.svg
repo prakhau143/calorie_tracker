@@ -1,5 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172 32" role="img" aria-label="NET//CAL — Net Calorie Tracker">
-  <rect width="32" height="32" rx="9" fill="#0b0e17" />
+  <!-- Full-width plate: the wordmark's cyan is ~1.6:1 on white, so the
+       lockup carries its own ground and stays legible on any background. -->
+  <rect width="172" height="32" rx="9" fill="#0b0e17" />
   <g transform="rotate(18 16 16)">
     <rect x="8" y="3" width="5" height="26" rx="2.5" fill="url(#netcal-logo-gradient)" />
     <rect x="19" y="3" width="5" height="26" rx="2.5" fill="url(#netcal-logo-gradient)" />

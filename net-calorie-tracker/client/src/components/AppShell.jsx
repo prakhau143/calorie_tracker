@@ -1,3 +1,5 @@
+import { ThemeToggle } from './ThemeToggle.jsx';
+
 export function AppShell({ leading, title, children }) {
   return (
     <div className="app-shell">
@@ -12,7 +14,9 @@ export function AppShell({ leading, title, children }) {
             </>
           )}
         </div>
-        <div className="app-header__trailing" aria-hidden="true" />
+        <div className="app-header__trailing">
+          <ThemeToggle />
+        </div>
       </header>
       <main className="app-main">{children}</main>
     </div>
