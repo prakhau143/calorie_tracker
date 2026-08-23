@@ -7,7 +7,11 @@ import { Activity } from '../src/models/activity.js';
 import { calculateBmr } from '../src/services/bmr.service.js';
 import { calculateFoodCalories, calculateActivityCalories } from '../src/services/calorie.service.js';
 
-const TEST_MONGO_URI = 'mongodb://localhost:27017/net-calorie-tracker-test';
+// Deliberately NOT MONGO_URI: these tests call dropDatabase(), and MONGO_URI
+// points at Atlas in this project. Override via TEST_MONGO_URI if your local
+// Mongo lives elsewhere; see the README for the Docker one-liner.
+const TEST_MONGO_URI =
+  process.env.TEST_MONGO_URI ?? 'mongodb://localhost:27017/net-calorie-tracker-test';
 const app = createApp();
 
 let seedFood;
