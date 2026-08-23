@@ -1,0 +1,9 @@
+{
+  "name": "net-calorie-tracker",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server"
+  ]
+}
