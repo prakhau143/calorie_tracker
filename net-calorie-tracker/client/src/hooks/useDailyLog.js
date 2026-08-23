@@ -34,7 +34,7 @@ function mapActivityEntryFromLog(entry) {
 }
 
 export function useDailyLog(userId, date, user) {
-  const [status, setStatus] = useState('idle'); // idle | loading | ready | error
+  const [status, setStatus] = useState('loading'); // loading | ready | error
   const [error, setError] = useState(null);
   const [foodEntries, setFoodEntries] = useState([]);
   const [activityEntries, setActivityEntries] = useState([]);
@@ -45,11 +45,6 @@ export function useDailyLog(userId, date, user) {
   useEffect(() => {
     if (!userId || !date) return;
     let cancelled = false;
-
-    setStatus('loading');
-    setError(null);
-    setSaveError(null);
-    setLastSavedAt(null);
 
     api
       .getDay(userId, date)

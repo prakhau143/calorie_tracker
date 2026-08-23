@@ -25,8 +25,7 @@ export function UsersPage({ onSelectUser }) {
   const [pendingDelete, setPendingDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  function loadUsers() {
-    setStatus('loading');
+  function fetchUsers() {
     api
       .listUsers()
       .then((data) => {
@@ -36,7 +35,14 @@ export function UsersPage({ onSelectUser }) {
       .catch(() => setStatus('error'));
   }
 
-  useEffect(loadUsers, []);
+  function reloadUsers() {
+    setStatus('loading');
+    fetchUsers();
+  }
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -55,7 +61,7 @@ export function UsersPage({ onSelectUser }) {
         sex: form.sex,
       });
       setForm(emptyForm);
-      loadUsers();
+      reloadUsers();
     } catch (err) {
       setSubmitError(err.message);
     } finally {
@@ -68,7 +74,7 @@ export function UsersPage({ onSelectUser }) {
     try {
       await api.deleteUser(pendingDelete._id);
       setPendingDelete(null);
-      loadUsers();
+      reloadUsers();
     } finally {
       setDeleting(false);
     }

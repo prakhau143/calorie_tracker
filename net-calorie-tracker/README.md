@@ -47,6 +47,16 @@ All calculations are computed and persisted by the backend; the frontend only pr
 the identical formula, so the number shown before "Add"/"Save Day" always matches what gets
 saved.
 
+## Layout
+
+The workspace fills most of the desktop viewport (`min(94vw, 1800px)`) rather than sitting in
+a narrow centred column. The user list renders as a table on desktop and collapses to labeled
+cards on mobile; the tracker uses two ~50%-width columns (Calories In / Calories Out) with the
+summary metrics above and Save Day below, stacking to a single column below tablet width.
+Layered surfaces (search dropdowns, the delete-confirmation dialog) are intentionally opaque —
+not glass — and follow a shared z-index scale in `client/src/styles/tokens.css`, so they never
+blend into the content behind them.
+
 ## Prerequisites
 
 - Node.js 20+
@@ -87,8 +97,12 @@ cd client && npm run dev      # http://localhost:5173
 ## Test
 
 ```bash
-cd server && npm test         # BMR / calorie / date-window unit tests (Vitest)
+cd server && npm test         # unit tests (BMR/calorie/date-window) + API tests (Vitest + Supertest)
 ```
+
+The API tests (`server/tests/api.test.js`) run against a separate `net-calorie-tracker-test`
+database on the same Mongo instance — seeded in `beforeAll`, dropped in `afterAll` — so they
+never touch the data seeded by the importers.
 
 ## API
 

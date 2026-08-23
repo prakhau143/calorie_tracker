@@ -60,6 +60,10 @@
   font-size: 1.1rem;
 }
 
+.form-panel .btn-primary {
+  min-width: 9rem;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: minmax(220px, 2fr) repeat(4, minmax(130px, 1fr));
@@ -340,6 +344,10 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+.save-bar .btn-primary {
+  min-width: 9rem;
 }
 
 .save-bar__status {

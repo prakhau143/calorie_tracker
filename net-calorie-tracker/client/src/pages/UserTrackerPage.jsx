@@ -17,7 +17,6 @@ export function UserTrackerPage({ userId, onBack }) {
   const [date, setDate] = useState(todayString());
 
   useEffect(() => {
-    setUserStatus('loading');
     api
       .getUser(userId)
       .then((data) => {

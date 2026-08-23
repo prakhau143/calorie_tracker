@@ -67,6 +67,27 @@
         {
           "name": "Delete User",
           "request": { "method": "DELETE", "url": "{{baseUrl}}/users/{{userId}}" }
+        },
+        {
+          "name": "Create User — Validation Error (400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/users",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bad User\",\n  \"age\": 25,\n  \"weightKg\": 72,\n  \"heightCm\": 178,\n  \"sex\": \"unspecified\"\n}"
+            },
+            "description": "Invalid `sex` value. Expect 400 with error.code = VALIDATION_ERROR."
+          }
+        },
+        {
+          "name": "Get User — Not Found (404)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users/aaaaaaaaaaaaaaaaaaaaaaaa",
+            "description": "Well-formed but non-existent id. Expect 404 with error.code = NOT_FOUND."
+          }
         }
       ]
     },
