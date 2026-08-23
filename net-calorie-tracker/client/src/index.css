@@ -12,7 +12,16 @@
   margin: var(--space-5) auto 0;
   padding: var(--space-4) var(--space-6);
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  /* The brand column must be allowed to shrink below its content's natural
+     width (minmax(0, auto), not bare auto) — otherwise, exactly like the
+     users-table columns earlier, it never yields space back and instead
+     pushes the trailing column (the theme toggle) out past the header's
+     own right edge on narrow viewports. Leading/trailing stay plain 1fr:
+     their content (a short "Back" button, the toggle) is fixed and short
+     and is meant to keep its full width; only the brand's tagline — which
+     can hold an arbitrary-length user name on the tracker page — needs to
+     give way, via the ellipsis truncation on .app-header__tagline below. */
+  grid-template-columns: 1fr minmax(0, auto) 1fr;
   align-items: center;
   gap: var(--space-3);
 }
@@ -30,6 +39,7 @@
   justify-content: center;
   gap: var(--space-2);
   white-space: nowrap;
+  min-width: 0;
 }
 
 .app-header__logo {
@@ -46,11 +56,19 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  flex-shrink: 0;
 }
 
 .app-header__tagline {
   color: var(--text-secondary);
   font-size: var(--text-secondary-size);
+  /* Holds a static "Net Calorie Tracker" on the users page, but the tracker
+     page swaps this slot for the selected user's name, which can be much
+     longer. Truncate instead of forcing the header to overflow. */
+  min-width: 0;
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .app-header__trailing {
@@ -92,6 +110,15 @@
 
 @media (max-width: 560px) {
   .theme-toggle__label {
+    display: none;
+  }
+
+  /* Below this width even a fully-collapsed tagline still leaves the brand
+     column too tight against the leading/trailing buttons (the tracker
+     page's back button + the fixed brand mark alone are enough to fill the
+     available width). Drop the tagline slot entirely rather than show a
+     sliver of ellipsis-truncated text. */
+  .app-header__tagline {
     display: none;
   }
 }
