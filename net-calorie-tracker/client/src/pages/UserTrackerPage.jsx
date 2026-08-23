@@ -5,6 +5,7 @@ import { MetricCard } from '../components/MetricCard.jsx';
 import { SearchSelect } from '../components/SearchSelect.jsx';
 import { StatusPanel } from '../components/StatusPanel.jsx';
 import { minAllowedDateString, shiftDateString, todayString, formatDateDisplay } from '../utils/dateWindow.js';
+import { calculateActivityCalories, calculateFoodCalories } from '../services/calc.js';
 
 const MEAL_ORDER = ['breakfast', 'lunch', 'dinner', 'snack'];
 const MEAL_LABELS = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snack: 'Snack' };
@@ -119,12 +120,16 @@ function TrackerBody({ user, date }) {
 
   const foodPreviewCalories =
     selectedFood && Number(quantityGrams) > 0
-      ? Math.round(((selectedFood.caloriesPer100g * Number(quantityGrams)) / 100) * 100) / 100
+      ? calculateFoodCalories({ caloriesPer100g: selectedFood.caloriesPer100g, quantityGrams: Number(quantityGrams) })
       : null;
 
   const activityPreviewCalories =
     selectedActivity && Number(durationMinutes) > 0
-      ? Math.round(selectedActivity.metValue * user.weightKg * (Number(durationMinutes) / 60) * 100) / 100
+      ? calculateActivityCalories({
+          metValue: selectedActivity.metValue,
+          weightKg: user.weightKg,
+          durationMinutes: Number(durationMinutes),
+        })
       : null;
 
   function handleAddFood(e) {
@@ -306,9 +311,10 @@ function FoodEntriesList({ entries, onRemove }) {
         <div key={meal} className="entries-group">
           <h3 className="entries-group__title">{MEAL_LABELS[meal]}</h3>
           <ul>
-            {entries.map((entry, index) =>
-              entry.meal === meal ? (
-                <li key={index} className="entry-row">
+            {entries
+              .filter((entry) => entry.meal === meal)
+              .map((entry) => (
+                <li key={entry.localId} className="entry-row">
                   <span>
                     {entry.foodName}{' '}
                     <span className="mono entry-row__meta">
@@ -318,14 +324,13 @@ function FoodEntriesList({ entries, onRemove }) {
                   <button
                     type="button"
                     className="btn btn-secondary btn-icon"
-                    onClick={() => onRemove(index)}
+                    onClick={() => onRemove(entry.localId)}
                     aria-label={`Remove ${entry.foodName}`}
                   >
                     ✕
                   </button>
                 </li>
-              ) : null,
-            )}
+              ))}
           </ul>
         </div>
       ))}
@@ -340,8 +345,8 @@ function ActivityEntriesList({ entries, onRemove }) {
 
   return (
     <ul className="entries-list">
-      {entries.map((entry, index) => (
-        <li key={index} className="entry-row">
+      {entries.map((entry) => (
+        <li key={entry.localId} className="entry-row">
           <span>
             {entry.activityName} — {entry.specificMotion}{' '}
             <span className="mono entry-row__meta">
@@ -351,7 +356,7 @@ function ActivityEntriesList({ entries, onRemove }) {
           <button
             type="button"
             className="btn btn-secondary btn-icon"
-            onClick={() => onRemove(index)}
+            onClick={() => onRemove(entry.localId)}
             aria-label={`Remove ${entry.activityName}`}
           >
             ✕

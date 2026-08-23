@@ -2,8 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../services/api.js';
 import { calculateActivityCalories, calculateBmr, calculateFoodCalories, sumRounded } from '../services/calc.js';
 
+let localIdCounter = 0;
+function nextLocalId() {
+  localIdCounter += 1;
+  return `entry-${localIdCounter}`;
+}
+
 function mapFoodEntryFromLog(entry) {
   return {
+    localId: nextLocalId(),
     foodId: entry.foodId,
     foodName: entry.foodNameSnapshot,
     servingDescription: entry.servingDescriptionSnapshot,
@@ -16,6 +23,7 @@ function mapFoodEntryFromLog(entry) {
 
 function mapActivityEntryFromLog(entry) {
   return {
+    localId: nextLocalId(),
     activityId: entry.activityId,
     activityName: entry.activityNameSnapshot,
     specificMotion: entry.specificMotionSnapshot,
@@ -67,6 +75,7 @@ export function useDailyLog(userId, date, user) {
     setFoodEntries((prev) => [
       ...prev,
       {
+        localId: nextLocalId(),
         foodId: food._id,
         foodName: food.name,
         servingDescription: food.servingDescription,
@@ -78,8 +87,8 @@ export function useDailyLog(userId, date, user) {
     ]);
   }, []);
 
-  const removeFoodEntry = useCallback((index) => {
-    setFoodEntries((prev) => prev.filter((_, i) => i !== index));
+  const removeFoodEntry = useCallback((localId) => {
+    setFoodEntries((prev) => prev.filter((entry) => entry.localId !== localId));
   }, []);
 
   const addActivityEntry = useCallback(
@@ -92,6 +101,7 @@ export function useDailyLog(userId, date, user) {
       setActivityEntries((prev) => [
         ...prev,
         {
+          localId: nextLocalId(),
           activityId: activity._id,
           activityName: activity.activityName,
           specificMotion: activity.specificMotion,
@@ -104,8 +114,8 @@ export function useDailyLog(userId, date, user) {
     [user],
   );
 
-  const removeActivityEntry = useCallback((index) => {
-    setActivityEntries((prev) => prev.filter((_, i) => i !== index));
+  const removeActivityEntry = useCallback((localId) => {
+    setActivityEntries((prev) => prev.filter((entry) => entry.localId !== localId));
   }, []);
 
   const bmr = useMemo(

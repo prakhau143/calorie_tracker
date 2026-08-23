@@ -15,5 +15,6 @@ const foodSchema = new mongoose.Schema(
 );
 
 foodSchema.index({ name: 1 });
+foodSchema.index({ foodGroup: 1 });
 
 export const Food = mongoose.model('Food', foodSchema);
