@@ -1,3 +1,21 @@
+/* ==========================================================================
+   Design tokens
+   --------------------------------------------------------------------------
+   Two layers:
+     1. Theme-independent scales (space, type, radius, motion, z-index).
+        Defined once on :root and never overridden.
+     2. Theme-dependent colour tokens, defined twice — once for dark (the
+        default) and once for [data-theme='light'].
+
+   Components must only ever consume the SEMANTIC names in layer 2
+   (--surface, --border, --ink-*, --on-accent, …). Nothing outside this file
+   should contain a literal colour, or a theme swap will leak.
+
+   The theme attribute is written to <html> by the boot script in index.html
+   before first paint, so it is always present. With JS disabled the page
+   falls back to the dark palette below, which is the original design.
+   ========================================================================== */
+
 :root {
   /* ---- Type families ---- */
   --font-sans: 'Sora', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -33,7 +51,7 @@
   --leading-tight: 1.2;
   --leading-normal: 1.5;
 
-  /* Semantic type roles (§16) */
+  /* Semantic type roles */
   --text-brand: var(--text-lg);
   --text-page-heading: var(--text-xl);
   --text-section-heading: var(--text-md);
@@ -44,66 +62,12 @@
   --text-metric-unit: var(--text-base-plus);
   --text-eyebrow: var(--text-xs);
 
-  /* ---- Ink ramp (text colors, brightest to faintest) ---- */
-  --ink-1: #f4f7fc;
-  --ink-2: #eef2f9;
-  --ink-3: #c3cbdb;
-  --ink-4: #9aa5b8;
-  --ink-5: #7b8496;
-  --ink-6: #6b7488;
-  --ink-7: #4b5162;
-
-  --text-primary: var(--ink-2);
-  --text-secondary: var(--ink-4);
-  --text-muted: var(--ink-6);
-
-  /* ---- Surface / background ---- */
-  --bg-base: #090b12;
-  --bg-glow-accent: rgba(56, 189, 248, 0.14);
-  --bg-glow-wash: rgba(167, 139, 250, 0.07);
-
-  --glass-bg: rgba(255, 255, 255, 0.045);
-  --glass-bg-strong: rgba(255, 255, 255, 0.07);
-  --glass-border: rgba(255, 255, 255, 0.09);
-  --glass-border-strong: rgba(255, 255, 255, 0.16);
-
-  --surface-elevated-bg: rgba(15, 22, 34, 0.98);
-  --surface-elevated-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
-
-  /* ---- Accent (single primary hue: sky-cyan) ---- */
-  --accent: #38bdf8;
-  --accent-strong: #7dd3fc;
-  --accent-soft: rgba(56, 189, 248, 0.16);
-  --accent-wash: rgba(167, 139, 250, 0.1);
-
-  /* ---- Semantic colors ---- */
-  --success: #34d399;
-  --success-strong: #10b981;
-  --warning: #fbbf24;
-  --warning-strong: #f59e0b;
-  --danger: #f87171;
-  --danger-strong: #ef4444;
-  --info: #38bdf8;
-
-  --positive: var(--success);
-  --negative: var(--danger);
-
   /* ---- Radius ---- */
   --radius-xs: 6px;
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius-lg: 20px;
   --radius-full: 999px;
-
-  /* ---- Shadow ramp ---- */
-  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.28);
-  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.45);
-  --shadow-focus-ring: 0 0 0 3px var(--accent-soft);
-
-  --shadow-glass: var(--shadow-md);
-  --blur-glass: blur(18px);
 
   /* ---- Transitions ---- */
   --duration-fast: 120ms;
@@ -120,6 +84,164 @@
   --z-popover: 150;
   --z-modal: 200;
   --z-toast: 300;
+
+  --blur-glass: blur(18px);
+}
+
+/* ==========================================================================
+   Dark theme — the default.
+   The ink ramp is ordered by CONTRAST against the current surface, not by
+   lightness: --ink-1 is always the strongest text, --ink-7 the faintest.
+   That ordering is what lets the same names work in both themes.
+   ========================================================================== */
+
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Ink ramp: strongest -> faintest */
+  --ink-1: #f4f7fc;
+  --ink-2: #eef2f9;
+  --ink-3: #c3cbdb;
+  --ink-4: #9aa5b8;
+  --ink-5: #7b8496;
+  --ink-6: #6b7488;
+  --ink-7: #4b5162;
+
+  --text-primary: var(--ink-2);
+  --text-secondary: var(--ink-4);
+  --text-muted: var(--ink-6);
+
+  /* Page ground + ambient wash */
+  --bg-base: #090b12;
+  --bg-glow-accent: rgba(56, 189, 248, 0.14);
+  --bg-glow-wash: rgba(167, 139, 250, 0.07);
+  --bg-glow-foot: rgba(56, 189, 248, 0.06);
+
+  /* Surfaces. Glass is a light film over a dark ground. */
+  --surface: rgba(255, 255, 255, 0.045);
+  --surface-raised: rgba(255, 255, 255, 0.07);
+  --surface-elevated: rgba(15, 22, 34, 0.98);
+  --surface-sunken: rgba(0, 0, 0, 0.25);
+  --surface-hover: rgba(255, 255, 255, 0.1);
+  --surface-row: rgba(255, 255, 255, 0.03);
+  --surface-row-hover: rgba(255, 255, 255, 0.05);
+
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --overlay: rgba(3, 5, 10, 0.65);
+
+  /* Accent — bright on dark, so text sitting on it must be near-black. */
+  --accent: #38bdf8;
+  --accent-strong: #7dd3fc;
+  --accent-soft: rgba(56, 189, 248, 0.16);
+  --accent-link: var(--accent-strong);
+  --on-accent: #04121c;
+
+  /* Semantic */
+  --success: #34d399;
+  --success-strong: #10b981;
+  --warning: #fbbf24;
+  --warning-strong: #f59e0b;
+  --danger: #f87171;
+  --danger-strong: #ef4444;
+  --info: #38bdf8;
+
+  --danger-surface: rgba(248, 113, 113, 0.12);
+  --danger-surface-hover: rgba(248, 113, 113, 0.2);
+  --danger-border: rgba(248, 113, 113, 0.4);
+
+  --positive: var(--success);
+  --negative: var(--danger);
+
+  /* Shadows — pure black reads correctly only over a dark ground. */
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.28);
+  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.45);
+  --shadow-focus-ring: 0 0 0 3px var(--accent-soft);
+  --shadow-glass: var(--shadow-md);
+}
+
+/* ==========================================================================
+   Light theme — designed, not inverted.
+
+   Three decisions carry it:
+     - The page ground is off-white so elevated surfaces can be pure white
+       and still read as raised. A white-on-white UI has no depth.
+     - Borders and films are low-alpha INK, not low-alpha white, otherwise
+       every glass surface disappears.
+     - Shadows are a soft ink-blue rather than black. Black shadows on light
+       look like dirt; tinted ones look like paper.
+
+   The accent also has to move: #38bdf8 is ~1.9:1 on white, unusable for
+   text or focus rings, so light mode drops to sky-600/700.
+   ========================================================================== */
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  /* Ink ramp: strongest -> faintest (i.e. darkest -> lightest here) */
+  --ink-1: #020617;
+  --ink-2: #0f172a;
+  --ink-3: #334155;
+  --ink-4: #475569;
+  --ink-5: #64748b;
+  --ink-6: #6b7688;
+  --ink-7: #94a3b8;
+
+  --text-primary: var(--ink-2);
+  --text-secondary: var(--ink-4);
+  --text-muted: var(--ink-6);
+
+  --bg-base: #eef1f7;
+  --bg-glow-accent: rgba(2, 132, 199, 0.09);
+  --bg-glow-wash: rgba(124, 58, 237, 0.05);
+  --bg-glow-foot: rgba(2, 132, 199, 0.05);
+
+  /* Glass inverts to an ink film over paper. */
+  --surface: rgba(255, 255, 255, 0.72);
+  --surface-raised: rgba(255, 255, 255, 0.92);
+  --surface-elevated: #ffffff;
+  --surface-sunken: rgba(255, 255, 255, 0.9);
+  --surface-hover: rgba(15, 23, 42, 0.06);
+  --surface-row: rgba(15, 23, 42, 0.03);
+  --surface-row-hover: rgba(15, 23, 42, 0.06);
+
+  --border: rgba(15, 23, 42, 0.12);
+  --border-strong: rgba(15, 23, 42, 0.2);
+  --overlay: rgba(15, 23, 42, 0.42);
+
+  /* Accent darkened for contrast; text on it becomes white. */
+  --accent: #0284c7;
+  --accent-strong: #0369a1;
+  --accent-soft: rgba(2, 132, 199, 0.18);
+  --accent-link: #0369a1;
+  --on-accent: #ffffff;
+
+  /* Semantic — 600-weight so they pass contrast on paper. */
+  --success: #059669;
+  --success-strong: #047857;
+  --warning: #d97706;
+  --warning-strong: #b45309;
+  --danger: #dc2626;
+  --danger-strong: #b91c1c;
+  --info: #0284c7;
+
+  --danger-surface: rgba(220, 38, 38, 0.08);
+  --danger-surface-hover: rgba(220, 38, 38, 0.14);
+  --danger-border: rgba(220, 38, 38, 0.35);
+
+  --positive: var(--success);
+  --negative: var(--danger);
+
+  /* Ink-blue shadows, much tighter alpha than dark mode. */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.07);
+  --shadow-md: 0 8px 28px rgba(15, 23, 42, 0.09);
+  --shadow-lg: 0 20px 45px rgba(15, 23, 42, 0.16);
+  --shadow-focus-ring: 0 0 0 3px var(--accent-soft);
+  --shadow-glass: var(--shadow-sm);
 }
 
 @media (prefers-reduced-motion: reduce) {

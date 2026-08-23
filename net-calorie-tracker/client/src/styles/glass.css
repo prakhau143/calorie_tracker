@@ -17,9 +17,11 @@ body {
   background-image:
     radial-gradient(circle at 12% 8%, var(--bg-glow-accent), transparent 42%),
     radial-gradient(circle at 88% 18%, var(--bg-glow-wash), transparent 45%),
-    radial-gradient(circle at 50% 100%, rgba(56, 189, 248, 0.06), transparent 55%);
+    radial-gradient(circle at 50% 100%, var(--bg-glow-foot), transparent 55%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
+  transition: background-color var(--duration-base) var(--ease-standard),
+    color var(--duration-base) var(--ease-standard);
 }
 
 button,
@@ -31,7 +33,7 @@ textarea {
 }
 
 a {
-  color: var(--accent-strong);
+  color: var(--accent-link);
 }
 
 .mono {
@@ -47,8 +49,8 @@ a {
 }
 
 .glass-panel {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   backdrop-filter: var(--blur-glass);
   -webkit-backdrop-filter: var(--blur-glass);
@@ -56,8 +58,8 @@ a {
 }
 
 .glass-panel--strong {
-  background: var(--glass-bg-strong);
-  border-color: var(--glass-border-strong);
+  background: var(--surface-raised);
+  border-color: var(--border-strong);
 }
 
 .btn {
@@ -91,7 +93,7 @@ button:focus-visible,
 
 .btn-primary {
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-  color: #04121c;
+  color: var(--on-accent);
 }
 
 .btn-primary:hover {
@@ -105,23 +107,23 @@ button:focus-visible,
 }
 
 .btn-secondary {
-  background: var(--glass-bg-strong);
-  border-color: var(--glass-border-strong);
+  background: var(--surface-raised);
+  border-color: var(--border-strong);
   color: var(--text-primary);
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--surface-hover);
 }
 
 .btn-danger {
-  background: rgba(248, 113, 113, 0.12);
-  border-color: rgba(248, 113, 113, 0.4);
+  background: var(--danger-surface);
+  border-color: var(--danger-border);
   color: var(--danger-strong);
 }
 
 .btn-danger:hover {
-  background: rgba(248, 113, 113, 0.2);
+  background: var(--danger-surface-hover);
 }
 
 .field {
@@ -144,14 +146,15 @@ button:focus-visible,
 
 .input,
 select.input {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid var(--glass-border-strong);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
   min-height: 44px;
   padding: var(--space-3) var(--space-4);
   color: var(--text-primary);
   font-size: var(--text-base-plus);
-  transition: border-color var(--duration-base) var(--ease-standard);
+  transition: border-color var(--duration-base) var(--ease-standard),
+    background-color var(--duration-base) var(--ease-standard);
 }
 
 .input::placeholder {
@@ -183,8 +186,4 @@ select.input {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-muted);
-}
-
-.metric-card__label {
-  color: var(--text-secondary);
 }
