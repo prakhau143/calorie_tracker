@@ -1,11 +1,11 @@
 import { Food } from '../models/food.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ok, AppError } from '../utils/response.js';
-import { escapeRegex } from '../utils/escapeRegex.js';
+import { prefixRegex } from '../utils/escapeRegex.js';
 
 export const searchFoods = asyncHandler(async (req, res) => {
   const { search, page, limit } = req.query;
-  const filter = search ? { name: new RegExp(escapeRegex(search), 'i') } : {};
+  const filter = search ? { name: prefixRegex(search) } : {};
 
   const [items, total] = await Promise.all([
     Food.find(filter)

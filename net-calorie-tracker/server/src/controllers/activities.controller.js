@@ -1,16 +1,13 @@
 import { Activity } from '../models/activity.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ok, AppError } from '../utils/response.js';
-import { escapeRegex } from '../utils/escapeRegex.js';
+import { prefixRegex } from '../utils/escapeRegex.js';
 
 export const searchActivities = asyncHandler(async (req, res) => {
   const { search, page, limit } = req.query;
   const filter = search
     ? {
-        $or: [
-          { activityName: new RegExp(escapeRegex(search), 'i') },
-          { specificMotion: new RegExp(escapeRegex(search), 'i') },
-        ],
+        $or: [{ activityName: prefixRegex(search) }, { specificMotion: prefixRegex(search) }],
       }
     : {};
 

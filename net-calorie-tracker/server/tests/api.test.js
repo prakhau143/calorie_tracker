@@ -90,6 +90,123 @@ describe('Foods API', () => {
   });
 });
 
+describe('Search prefix matching', () => {
+  // "Special Salad" contains "al" (specI-AL) but must not surface for a
+  // search of "al" — that substring-anywhere behavior is exactly the bug.
+  beforeAll(async () => {
+    await Food.create([
+      { sourceId: 'search-almond', name: 'Almond Butter', foodGroup: 'Nuts', caloriesPer100g: 614 },
+      { sourceId: 'search-albacore', name: 'Albacore Tuna', foodGroup: 'Seafood', caloriesPer100g: 184 },
+      { sourceId: 'search-apple', name: 'Apple Pie', foodGroup: 'Desserts', caloriesPer100g: 237 },
+      { sourceId: 'search-special-salad', name: 'Special Salad', foodGroup: 'Salads', caloriesPer100g: 120 },
+      { sourceId: 'search-chicken-wrap', name: 'Chicken Wrap', foodGroup: 'Sandwiches', caloriesPer100g: 250 },
+    ]);
+
+    await Activity.create([
+      { sourceKey: 'search|tennis|7', activityName: 'tennis', specificMotion: 'tennis, singles, competitive', metValue: 7 },
+      // Neither field starts with "ten" even though activityName contains it
+      // mid-word (In-TEN-se) — must not match a "ten" prefix search.
+      {
+        sourceKey: 'search|intense-cardio|9',
+        activityName: 'intense cardio',
+        specificMotion: 'high intensity interval training',
+        metValue: 9,
+      },
+      // Only specificMotion starts with "ten" — confirms the $or across
+      // both fields still works once each side is prefix-anchored.
+      {
+        sourceKey: 'search|racquet|6',
+        activityName: 'racquet sports',
+        specificMotion: 'tennis, doubles, social',
+        metValue: 6,
+      },
+    ]);
+  });
+
+  it('matches only names starting with the search term, not substrings', async () => {
+    const res = await request(app).get('/api/foods?search=al');
+
+    expect(res.status).toBe(200);
+    const names = res.body.data.items.map((f) => f.name);
+    expect(names).toEqual(expect.arrayContaining(['Almond Butter', 'Albacore Tuna']));
+    expect(names).not.toContain('Special Salad');
+    expect(names).not.toContain('Apple Pie');
+    for (const name of names) {
+      expect(name.toLowerCase().startsWith('al')).toBe(true);
+    }
+  });
+
+  it('narrows further as the prefix gets longer', async () => {
+    const res = await request(app).get('/api/foods?search=alm');
+
+    const names = res.body.data.items.map((f) => f.name);
+    expect(names).toContain('Almond Butter');
+    expect(names).not.toContain('Albacore Tuna');
+  });
+
+  it('matches a different prefix ("chic")', async () => {
+    const res = await request(app).get('/api/foods?search=chic');
+
+    const names = res.body.data.items.map((f) => f.name);
+    expect(names).toContain('Chicken Wrap');
+  });
+
+  it('is case-insensitive', async () => {
+    const [lower, upper] = await Promise.all([
+      request(app).get('/api/foods?search=al'),
+      request(app).get('/api/foods?search=AL'),
+    ]);
+
+    const lowerNames = lower.body.data.items.map((f) => f.name).sort();
+    const upperNames = upper.body.data.items.map((f) => f.name).sort();
+    expect(upperNames).toEqual(lowerNames);
+  });
+
+  it('trims leading/trailing whitespace before matching', async () => {
+    const res = await request(app).get('/api/foods').query({ search: '  al  ' });
+
+    const names = res.body.data.items.map((f) => f.name);
+    expect(names).toContain('Almond Butter');
+    expect(names).not.toContain('Special Salad');
+  });
+
+  it('does not change default (empty search) results', async () => {
+    const withoutSearch = await request(app).get('/api/foods?limit=50');
+    const withEmptySearch = await request(app).get('/api/foods?search=&limit=50');
+
+    expect(withEmptySearch.body.data.total).toBe(withoutSearch.body.data.total);
+  });
+
+  it('safely escapes regex special characters instead of throwing or matching everything', async () => {
+    const res = await request(app).get('/api/foods').query({ search: 'a.*+?^${}()|[]\\' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.items).toEqual([]);
+  });
+
+  it('prefix-matches activities across both activityName and specificMotion', async () => {
+    const res = await request(app).get('/api/activities?search=ten');
+
+    expect(res.status).toBe(200);
+    const items = res.body.data.items;
+    const activityNames = items.map((a) => a.activityName);
+    const motions = items.map((a) => a.specificMotion);
+
+    expect(activityNames).toContain('tennis');
+    // Matched via specificMotion ("tennis, doubles..."), not activityName.
+    expect(activityNames).toContain('racquet sports');
+    expect(motions.some((m) => m.startsWith('tennis'))).toBe(true);
+
+    expect(activityNames).not.toContain('intense cardio');
+
+    for (const item of items) {
+      const nameMatches = item.activityName.toLowerCase().startsWith('ten');
+      const motionMatches = item.specificMotion.toLowerCase().startsWith('ten');
+      expect(nameMatches || motionMatches).toBe(true);
+    }
+  });
+});
+
 describe('Daily log API', () => {
   const date = '2026-08-20';
 
