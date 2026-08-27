@@ -41,6 +41,9 @@ export function useDailyLog(userId, date, user) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [lastSavedAt, setLastSavedAt] = useState(null);
+  // Tracks additions/removals since the day was loaded (or last saved) so
+  // the tracker page can warn before navigating away and discarding them.
+  const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
     if (!userId || !date) return;
@@ -52,6 +55,7 @@ export function useDailyLog(userId, date, user) {
         if (cancelled) return;
         setFoodEntries(dailyLog ? dailyLog.foodEntries.map(mapFoodEntryFromLog) : []);
         setActivityEntries(dailyLog ? dailyLog.activityEntries.map(mapActivityEntryFromLog) : []);
+        setDirty(false);
         setStatus('ready');
       })
       .catch((err) => {
@@ -80,10 +84,12 @@ export function useDailyLog(userId, date, user) {
         calories,
       },
     ]);
+    setDirty(true);
   }, []);
 
   const removeFoodEntry = useCallback((localId) => {
     setFoodEntries((prev) => prev.filter((entry) => entry.localId !== localId));
+    setDirty(true);
   }, []);
 
   const addActivityEntry = useCallback(
@@ -105,12 +111,14 @@ export function useDailyLog(userId, date, user) {
           caloriesBurned,
         },
       ]);
+      setDirty(true);
     },
     [user],
   );
 
   const removeActivityEntry = useCallback((localId) => {
     setActivityEntries((prev) => prev.filter((entry) => entry.localId !== localId));
+    setDirty(true);
   }, []);
 
   const bmr = useMemo(
@@ -145,6 +153,7 @@ export function useDailyLog(userId, date, user) {
       setFoodEntries(dailyLog.foodEntries.map(mapFoodEntryFromLog));
       setActivityEntries(dailyLog.activityEntries.map(mapActivityEntryFromLog));
       setLastSavedAt(new Date());
+      setDirty(false);
       return dailyLog;
     } catch (err) {
       setSaveError(err.message);
@@ -170,6 +179,7 @@ export function useDailyLog(userId, date, user) {
     saving,
     saveError,
     lastSavedAt,
+    dirty,
     save,
   };
 }

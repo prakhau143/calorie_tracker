@@ -12,12 +12,15 @@ export function SearchSelect({
   renderOption,
   getOptionLabel,
   onSelect,
+  onQueryChange,
   minChars = 1,
 }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searchError, setSearchError] = useState(null);
+  const [retryToken, setRetryToken] = useState(0);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [position, setPosition] = useState(null);
   const debouncedQuery = useDebounce(query, 300);
@@ -40,12 +43,21 @@ export function SearchSelect({
         if (cancelled) return;
         setOptions(result.items ?? []);
         setActiveIndex(result.items?.length ? 0 : -1);
+        setSearchError(null);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        // Distinct from "no matches" — the request itself failed, so tell
+        // the user rather than implying their food/activity doesn't exist.
+        setOptions([]);
+        setActiveIndex(-1);
+        setSearchError(err.message || 'Search failed.');
       })
       .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
     };
-  }, [debouncedQuery, open, minChars, searchFn]);
+  }, [debouncedQuery, open, minChars, searchFn, retryToken]);
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -92,7 +104,13 @@ export function SearchSelect({
     onSelect(option);
     setQuery('');
     setOptions([]);
+    setSearchError(null);
     setOpen(false);
+  }
+
+  function retry() {
+    setSearchError(null);
+    setRetryToken((t) => t + 1);
   }
 
   function handleKeyDown(e) {
@@ -107,7 +125,10 @@ export function SearchSelect({
       e.preventDefault();
       setActiveIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === 'Enter') {
-      if (activeIndex >= 0 && options[activeIndex]) {
+      if (searchError) {
+        e.preventDefault();
+        retry();
+      } else if (activeIndex >= 0 && options[activeIndex]) {
         e.preventDefault();
         selectOption(options[activeIndex]);
       }
@@ -135,19 +156,26 @@ export function SearchSelect({
           onChange={(e) => {
             setQuery(e.target.value);
             setOptions([]);
+            setSearchError(null);
             setOpen(true);
+            // A previously selected option no longer matches what's visibly
+            // typed once the user edits the query again — the parent's
+            // selection would otherwise silently go stale.
+            onQueryChange?.();
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
         />
       </label>
       {/* The listbox itself can't carry aria-live (its children must stay
-          options), so result counts are announced from here instead. */}
+          options), so result counts and failures are announced from here. */}
       <span className="visually-hidden" role="status" aria-live="polite">
-        {open && debouncedQuery.trim().length >= minChars && !loading
-          ? options.length === 0
-            ? 'No matches'
-            : `${options.length} result${options.length === 1 ? '' : 's'} available`
+        {open && !loading && debouncedQuery.trim().length >= minChars
+          ? searchError
+            ? 'Search failed. Press Enter to retry.'
+            : options.length === 0
+              ? 'No matches'
+              : `${options.length} result${options.length === 1 ? '' : 's'} available`
           : ''}
       </span>
       {open &&
@@ -167,13 +195,33 @@ export function SearchSelect({
             }}
           >
             {loading && <li className="search-select__status">Searching…</li>}
-            {!loading && debouncedQuery.trim().length < minChars && (
+            {!loading && searchError && (
+              <li
+                className="search-select__status search-select__status--error"
+                role="button"
+                tabIndex={0}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  retry();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    retry();
+                  }
+                }}
+              >
+                Unable to search right now. <span className="search-select__retry">Retry</span>
+              </li>
+            )}
+            {!loading && !searchError && debouncedQuery.trim().length < minChars && (
               <li className="search-select__status">Type to search…</li>
             )}
-            {!loading && debouncedQuery.trim().length >= minChars && options.length === 0 && (
+            {!loading && !searchError && debouncedQuery.trim().length >= minChars && options.length === 0 && (
               <li className="search-select__status">No matches</li>
             )}
             {!loading &&
+              !searchError &&
               debouncedQuery.trim().length >= minChars &&
               options.map((option, index) => (
                 <li

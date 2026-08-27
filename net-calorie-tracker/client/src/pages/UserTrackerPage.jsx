@@ -4,6 +4,7 @@ import { useDailyLog } from '../hooks/useDailyLog.js';
 import { MetricCard } from '../components/MetricCard.jsx';
 import { SearchSelect } from '../components/SearchSelect.jsx';
 import { StatusPanel } from '../components/StatusPanel.jsx';
+import { ConfirmDialog } from '../components/ConfirmDialog.jsx';
 import { Icon } from '../components/Icon.jsx';
 import { minAllowedDateString, shiftDateString, todayString, formatDateDisplay } from '../utils/dateWindow.js';
 import { calculateActivityCalories, calculateFoodCalories } from '../services/calc.js';
@@ -16,6 +17,12 @@ export function UserTrackerPage({ userId, onBack, onHeaderChange }) {
   const [user, setUser] = useState(null);
   const [userStatus, setUserStatus] = useState('loading');
   const [date, setDate] = useState(todayString());
+  // Unsaved additions/removals live only in TrackerBody's state until Save
+  // Day is pressed; both track it here too so date changes and "Back to
+  // Users" can be intercepted with a confirmation instead of silently
+  // discarding them.
+  const [dirty, setDirty] = useState(false);
+  const [pendingNav, setPendingNav] = useState(null); // null | { type: 'date', value } | { type: 'back' }
 
   useEffect(() => {
     api
@@ -27,13 +34,51 @@ export function UserTrackerPage({ userId, onBack, onHeaderChange }) {
       .catch(() => setUserStatus('error'));
   }, [userId]);
 
+  // Warn on a hard refresh/tab close too — the in-browser equivalent of the
+  // date-change/back-navigation guard below, since neither of those apply.
+  useEffect(() => {
+    function handleBeforeUnload(e) {
+      if (!dirty) return;
+      e.preventDefault();
+      e.returnValue = '';
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [dirty]);
+
+  const goToDate = useCallback(
+    (next) => {
+      if (dirty) {
+        setPendingNav({ type: 'date', value: next });
+      } else {
+        setDate(next);
+      }
+    },
+    [dirty],
+  );
+
+  const requestBack = useCallback(() => {
+    if (dirty) {
+      setPendingNav({ type: 'back' });
+    } else {
+      onBack();
+    }
+  }, [dirty, onBack]);
+
+  const confirmDiscardAndNavigate = useCallback(() => {
+    if (pendingNav?.type === 'date') setDate(pendingNav.value);
+    else if (pendingNav?.type === 'back') onBack();
+    setDirty(false);
+    setPendingNav(null);
+  }, [pendingNav, onBack]);
+
   const leading = useMemo(
     () => (
-      <button type="button" className="btn btn-secondary btn-nav-back" onClick={onBack}>
+      <button type="button" className="btn btn-secondary btn-nav-back" onClick={requestBack}>
         <Icon name="back" size={16} /> Users
       </button>
     ),
-    [onBack],
+    [requestBack],
   );
 
   const title = useMemo(
@@ -75,7 +120,7 @@ export function UserTrackerPage({ userId, onBack, onHeaderChange }) {
               <button
                 type="button"
                 className="btn btn-secondary btn-icon"
-                onClick={() => setDate((d) => (d > minDate ? shiftDateString(d, -1) : d))}
+                onClick={() => date > minDate && goToDate(shiftDateString(date, -1))}
                 disabled={date <= minDate}
                 aria-label="Previous day"
               >
@@ -96,13 +141,13 @@ export function UserTrackerPage({ userId, onBack, onHeaderChange }) {
                 // and only commit real ones.
                 onChange={(e) => {
                   const next = e.target.value;
-                  if (next && next >= minDate && next <= maxDate) setDate(next);
+                  if (next && next >= minDate && next <= maxDate) goToDate(next);
                 }}
               />
               <button
                 type="button"
                 className="btn btn-secondary btn-icon"
-                onClick={() => setDate((d) => (d < maxDate ? shiftDateString(d, 1) : d))}
+                onClick={() => date < maxDate && goToDate(shiftDateString(date, 1))}
                 disabled={date >= maxDate}
                 aria-label="Next day"
               >
@@ -111,14 +156,23 @@ export function UserTrackerPage({ userId, onBack, onHeaderChange }) {
             </div>
           </header>
 
-          <TrackerBody key={date} user={user} date={date} />
+          <TrackerBody key={date} user={user} date={date} onDirtyChange={setDirty} />
         </>
       )}
+
+      <ConfirmDialog
+        open={Boolean(pendingNav)}
+        title="Unsaved changes"
+        description="You have food or activity entries for this day that haven't been saved. Leaving now will discard them."
+        confirmLabel="Discard changes"
+        onConfirm={confirmDiscardAndNavigate}
+        onCancel={() => setPendingNav(null)}
+      />
     </div>
   );
 }
 
-function TrackerBody({ user, date }) {
+function TrackerBody({ user, date, onDirtyChange }) {
   const {
     status,
     error,
@@ -135,8 +189,15 @@ function TrackerBody({ user, date }) {
     saving,
     saveError,
     lastSavedAt,
+    dirty,
     save,
   } = useDailyLog(user._id, date, user);
+
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
+
+  const isToday = date === todayString();
 
   const [selectedFood, setSelectedFood] = useState(null);
   const [meal, setMeal] = useState('breakfast');
@@ -208,6 +269,7 @@ function TrackerBody({ user, date }) {
               placeholder="Search foods…"
               searchFn={searchFoods}
               onSelect={setSelectedFood}
+              onQueryChange={() => setSelectedFood(null)}
               getOptionLabel={(f) => f.name}
               renderOption={(f) => (
                 <div>
@@ -257,7 +319,7 @@ function TrackerBody({ user, date }) {
           </form>
 
           <hr className="entry-divider" />
-          <h3 className="eyebrow">Today's Food</h3>
+          <h3 className="eyebrow">{isToday ? "Today's Food" : `Food — ${formatDateDisplay(date)}`}</h3>
           <FoodEntriesList entries={foodEntries} onRemove={removeFoodEntry} />
           <div className="daily-total">
             <span className="eyebrow">Daily Total</span>
@@ -274,6 +336,7 @@ function TrackerBody({ user, date }) {
               placeholder="Search activities…"
               searchFn={searchActivities}
               onSelect={setSelectedActivity}
+              onQueryChange={() => setSelectedActivity(null)}
               getOptionLabel={(a) => `${titleCase(a.activityName)} · ${a.specificMotion} · ${a.metValue} MET`}
               renderOption={(a) => (
                 <div>
@@ -318,7 +381,7 @@ function TrackerBody({ user, date }) {
           </form>
 
           <hr className="entry-divider" />
-          <h3 className="eyebrow">Today's Activities</h3>
+          <h3 className="eyebrow">{isToday ? "Today's Activities" : `Activities — ${formatDateDisplay(date)}`}</h3>
           <ActivityEntriesList entries={activityEntries} onRemove={removeActivityEntry} />
           <div className="daily-total">
             <span className="eyebrow">Daily Total</span>
@@ -336,9 +399,15 @@ function TrackerBody({ user, date }) {
             {saveError}
           </span>
         )}
-        {/* The failure path already announces via role="alert"; success was
-            silent to screen readers until this live region. */}
-        {!saveError && lastSavedAt && (
+        {/* Priority: a failed save always wins; otherwise an edit made since
+            the last save should say so rather than still claiming "Saved"
+            for a day that no longer matches the server. */}
+        {!saveError && dirty && !saving && (
+          <span className="save-bar__status save-bar__status--unsaved mono" role="status" aria-live="polite">
+            Unsaved changes
+          </span>
+        )}
+        {!saveError && !dirty && lastSavedAt && (
           <span className="save-bar__status mono" role="status" aria-live="polite">
             <Icon name="save" size={14} /> Saved for {formatDateDisplay(date)}
           </span>
@@ -363,7 +432,7 @@ function FoodEntriesList({ entries, onRemove }) {
               .filter((entry) => entry.meal === meal)
               .map((entry) => (
                 <li key={entry.localId} className="entry-row">
-                  <span>
+                  <span className="entry-row__content">
                     {entry.foodName}{' '}
                     <span className="mono entry-row__meta">
                       {entry.quantityGrams}g · {entry.calories} kcal
@@ -395,7 +464,7 @@ function ActivityEntriesList({ entries, onRemove }) {
     <ul className="entries-list">
       {entries.map((entry) => (
         <li key={entry.localId} className="entry-row">
-          <span>
+          <span className="entry-row__content">
             {titleCase(entry.activityName)} · {entry.specificMotion} · {entry.metValue} MET{' '}
             <span className="mono entry-row__meta">
               {entry.durationMinutes} min · {entry.caloriesBurned} kcal
