@@ -28,6 +28,12 @@ export function SearchSelect({
   const containerRef = useRef(null);
   const inputRef = useRef(null);
   const listboxRef = useRef(null);
+  // Populated/cleared entirely from the option `ref` callback below (never
+  // mutated during render), so an index can't resolve to a stale element
+  // left over from a previous result set — the inline callback identity is
+  // new every render, so React detaches and reattaches every option's ref
+  // on each render regardless of whether the DOM node itself was reused.
+  const optionRefs = useRef(new Map());
 
   useEffect(() => {
     if (!open || debouncedQuery.trim().length < minChars) {
@@ -58,6 +64,16 @@ export function SearchSelect({
       cancelled = true;
     };
   }, [debouncedQuery, open, minChars, searchFn, retryToken]);
+
+  // Keyboard navigation moves activeIndex, but nothing else brings that
+  // option into view on its own — the listbox scrolls independently of
+  // which item is highlighted. `nearest` only scrolls when the option
+  // isn't already fully visible, so this is a no-op for mouse-hover-driven
+  // activeIndex changes (you can only hover what's already on screen).
+  useEffect(() => {
+    if (!open || activeIndex < 0) return;
+    optionRefs.current.get(activeIndex)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [activeIndex, open]);
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -156,6 +172,10 @@ export function SearchSelect({
           onChange={(e) => {
             setQuery(e.target.value);
             setOptions([]);
+            // Otherwise activeIndex (and aria-activedescendant) keeps
+            // pointing at an option from the old result set until the
+            // debounced search resolves and overwrites it.
+            setActiveIndex(-1);
             setSearchError(null);
             setOpen(true);
             // A previously selected option no longer matches what's visibly
@@ -226,6 +246,10 @@ export function SearchSelect({
               options.map((option, index) => (
                 <li
                   key={option._id}
+                  ref={(el) => {
+                    if (el) optionRefs.current.set(index, el);
+                    else optionRefs.current.delete(index);
+                  }}
                   id={`${listboxId}-option-${index}`}
                   role="option"
                   aria-selected={index === activeIndex}
